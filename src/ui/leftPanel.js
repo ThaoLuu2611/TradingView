@@ -156,7 +156,12 @@ export class LeftPanel {
   _subscribe() {
     on(EVENTS.DRAWING_TOOL, (subtool) => {
       // Map subtool → parent button and highlight it
-      const fibSubtools = ['fib-retracement', 'fib-extension', 'fib-channel', 'fib-timezone']
+      const fibSubtools = [
+        'fibonacciRetracement', 
+        'fibonacciExtension', 
+        'fibonacciChannel', 
+        'fibonacciSpeedResistanceFan'
+      ]
       if (fibSubtools.includes(subtool)) {
         if (this._btnFib) this._setToolActive(this._btnFib)
       } else {

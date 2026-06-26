@@ -8,6 +8,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
   <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+  <script>
+    (function(){
+      function sendLog(type, args) {
+        const msg = `[${type}] ` + Array.from(args).map(x => (typeof x === 'object' ? JSON.stringify(x) : x)).join(' ');
+        fetch('http://localhost:8081', { method: 'POST', body: msg }).catch(()=>{});
+      }
+      const _log = console.log;
+      console.log = function() { sendLog('LOG', arguments); _log.apply(console, arguments); };
+      const _err = console.error;
+      console.error = function() { sendLog('ERR', arguments); _err.apply(console, arguments); };
+      const _warn = console.warn;
+      console.warn = function() { sendLog('WARN', arguments); _warn.apply(console, arguments); };
+    })();
+  </script>
 </head>
 <body>
 <div id="app">
@@ -32,6 +46,12 @@
       <span class="spinner" id="nav-spinner"></span>
     </div>
     <div class="navbar-spacer"></div>
+  </div>
+
+  <!-- FLOATING TRASH BUTTON -->
+  <div id="floating-trash" style="display:none; position:fixed; z-index:9999; background:#fff; border:1px solid #e0e3eb; border-radius:4px; padding:4px 8px; cursor:pointer; color:#ef5350; font-size:12px; box-shadow:0 2px 6px rgba(0,0,0,0.15)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+    <span style="vertical-align:middle; margin-left:4px">Delete</span>
   </div>
 
   <!-- ROW 2: Toolbar -->

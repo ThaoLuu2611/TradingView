@@ -56,6 +56,39 @@ function nearestBinanceInterval(tf) {
   return best.bi
 }
 
+function aggregateKlines(data, targetSec, baseSec) {
+  if (!data || data.length === 0) return []
+  const ratio = Math.round(targetSec / baseSec)
+  if (ratio <= 1) return data
+
+  const result = []
+  let current = null
+  let count = 0
+
+  for (let i = 0; i < data.length; i++) {
+    const d = data[i]
+    if (!current) {
+      current = { timestamp: d.timestamp, open: d.open, high: d.high, low: d.low, close: d.close, volume: d.volume }
+      count = 1
+    } else {
+      current.high = Math.max(current.high, d.high)
+      current.low = Math.min(current.low, d.low)
+      current.close = d.close
+      current.volume += d.volume
+      count++
+    }
+
+    if (count === ratio) {
+      result.push(current)
+      current = null
+      count = 0
+    }
+  }
+  // Push the last partial candle if we want (TradingView usually shows partial current candle)
+  if (current) result.push(current)
+  return result
+}
+
 /**
  * Returns [{timestamp, open, high, low, close, volume}, ...] sorted ascending
  * @param {string} symbol - e.g. 'BTCUSDT'
@@ -69,7 +102,22 @@ export async function fetchOHLCV(symbol, interval, limit = 500) {
     throw new Error(`Unsupported interval: ${interval}`)
   }
 
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${binanceInterval}&limit=${limit}`;
+  // If user wants 3M, we fetch 1M and aggregate. Limit needs to be larger.
+  let fetchLimit = limit
+  let targetSec = 0
+  let baseSec = 0
+  
+  const mApp = interval.match(/^(\d+)([smhDWM])$/)
+  const mBin = binanceInterval.match(/^(\d+)([smhDWM])$/)
+  if (mApp && mBin) {
+    targetSec = parseInt(mApp[1]) * (UNIT_SEC_BI[mApp[2]] ?? 1)
+    baseSec = parseInt(mBin[1]) * (UNIT_SEC_BI[mBin[2]] ?? 1)
+    if (targetSec > baseSec) {
+      fetchLimit = Math.min(1000, limit * Math.ceil(targetSec / baseSec))
+    }
+  }
+
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${binanceInterval}&limit=${fetchLimit}`;
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -78,8 +126,7 @@ export async function fetchOHLCV(symbol, interval, limit = 500) {
 
   const data = await response.json();
 
-  // Binance returns: [openTime, open, high, low, close, volume, closeTime, ...]
-  return data.map(([openTime, open, high, low, close, volume]) => ({
+  const klines = data.map(([openTime, open, high, low, close, volume]) => ({
     timestamp: openTime,
     open: +open,
     high: +high,
@@ -87,5 +134,10 @@ export async function fetchOHLCV(symbol, interval, limit = 500) {
     close: +close,
     volume: +volume,
   }));
-  // Already sorted ascending by Binance
+
+  if (targetSec > baseSec) {
+    return aggregateKlines(klines, targetSec, baseSec)
+  }
+
+  return klines;
 }

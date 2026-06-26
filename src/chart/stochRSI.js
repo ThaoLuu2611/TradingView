@@ -13,92 +13,105 @@ export const stochRsiIndicator = {
     { key: 'd', title: '%D: ', type: 'line' }
   ],
   calc: (dataList, indicator) => {
-    const params = indicator.calcParams
-    const rsiLength = params[0]
-    const stochLength = params[1]
-    const kSmooth = params[2]
-    const dSmooth = params[3]
+    const params = indicator.calcParams || []
+    const rsiLength = Number(params[0]) || 14
+    const stochLength = Number(params[1]) || 14
+    const kSmooth = Number(params[2]) || 3
+    const dSmooth = Number(params[3]) || 3
 
+    const results = []
+    
+    if (dataList.length < rsiLength) {
+      return dataList.map(() => ({ k: null, d: null }))
+    }
+
+    const rsiValues = new Array(dataList.length).fill(null)
     let gain = 0
     let loss = 0
-    const rsiValues = []
     
-    // 1. Calculate RSI
-    for (let i = 0; i < dataList.length; i++) {
-      if (i === 0) {
-        rsiValues.push(null)
+    for (let i = 1; i < dataList.length; i++) {
+      const c1 = dataList[i].close
+      const c0 = dataList[i - 1].close
+      
+      // Prevent NaN contagion
+      if (typeof c1 !== 'number' || isNaN(c1) || typeof c0 !== 'number' || isNaN(c0)) {
+        rsiValues[i] = rsiValues[i - 1] || null
         continue
       }
-      const change = dataList[i].close - dataList[i - 1].close
-      
-      // Initial SMA for first RSI value
-      if (i < rsiLength) {
-        if (change > 0) gain += change
-        else loss -= change
-        rsiValues.push(null)
-      } else if (i === rsiLength) {
-        if (change > 0) gain += change
-        else loss -= change
-        gain /= rsiLength
-        loss /= rsiLength
-        rsiValues.push(loss === 0 ? 100 : 100 - (100 / (1 + gain / loss)))
+
+      const change = c1 - c0
+      const cg = change > 0 ? change : 0
+      const cl = change < 0 ? -change : 0
+
+      if (i <= rsiLength) {
+        gain += cg
+        loss += cl
+        if (i === rsiLength) {
+          gain /= rsiLength
+          loss /= rsiLength
+          rsiValues[i] = loss === 0 ? 100 : 100 - (100 / (1 + gain / loss))
+        }
       } else {
-        // RMA smoothing
-        const currentGain = change > 0 ? change : 0
-        const currentLoss = change < 0 ? -change : 0
-        gain = (gain * (rsiLength - 1) + currentGain) / rsiLength
-        loss = (loss * (rsiLength - 1) + currentLoss) / rsiLength
-        rsiValues.push(loss === 0 ? 100 : 100 - (100 / (1 + gain / loss)))
+        gain = (gain * (rsiLength - 1) + cg) / rsiLength
+        loss = (loss * (rsiLength - 1) + cl) / rsiLength
+        rsiValues[i] = loss === 0 ? 100 : 100 - (100 / (1 + gain / loss))
       }
     }
 
-    // 2. Calculate StochRSI
-    const stochRsiValues = []
-    for (let i = 0; i < rsiValues.length; i++) {
-      if (i < rsiLength + stochLength - 1 || rsiValues[i] === null) {
-        stochRsiValues.push(null)
-        continue
-      }
+    const stochRsiValues = new Array(dataList.length).fill(null)
+    for (let i = rsiLength + stochLength - 1; i < rsiValues.length; i++) {
       let maxRsi = -Infinity
       let minRsi = Infinity
       for (let j = 0; j < stochLength; j++) {
-        const rsi = rsiValues[i - j]
-        if (rsi > maxRsi) maxRsi = rsi
-        if (rsi < minRsi) minRsi = rsi
+        const val = rsiValues[i - j]
+        if (typeof val === 'number' && !isNaN(val)) {
+          if (val > maxRsi) maxRsi = val
+          if (val < minRsi) minRsi = val
+        }
       }
-      if (maxRsi === minRsi) {
-        stochRsiValues.push(0)
+      if (maxRsi === minRsi || maxRsi === -Infinity || isNaN(maxRsi) || isNaN(minRsi)) {
+        stochRsiValues[i] = 0
       } else {
-        stochRsiValues.push(((rsiValues[i] - minRsi) / (maxRsi - minRsi)) * 100)
+        stochRsiValues[i] = ((rsiValues[i] - minRsi) / (maxRsi - minRsi)) * 100
       }
     }
 
-    // 3. Calculate %K (SMA of StochRSI)
-    const kValues = []
-    for (let i = 0; i < stochRsiValues.length; i++) {
-      if (i < rsiLength + stochLength + kSmooth - 2 || stochRsiValues[i] === null) {
-        kValues.push(null)
-        continue
-      }
+    const kValues = new Array(dataList.length).fill(null)
+    for (let i = rsiLength + stochLength + kSmooth - 2; i < stochRsiValues.length; i++) {
       let sum = 0
+      let count = 0
       for (let j = 0; j < kSmooth; j++) {
-        sum += stochRsiValues[i - j]
+        const val = stochRsiValues[i - j]
+        if (typeof val === 'number' && !isNaN(val)) {
+          sum += val
+          count++
+        }
       }
-      kValues.push(sum / kSmooth)
+      kValues[i] = count > 0 ? sum / count : null
     }
 
-    // 4. Calculate %D (SMA of %K)
-    const results = []
     for (let i = 0; i < kValues.length; i++) {
-      if (i < rsiLength + stochLength + kSmooth + dSmooth - 3 || kValues[i] === null) {
-        results.push({ k: kValues[i], d: null })
-        continue
+      let k = kValues[i]
+      let d = null
+
+      if (i >= rsiLength + stochLength + kSmooth + dSmooth - 3) {
+        let sum = 0
+        let count = 0
+        for (let j = 0; j < dSmooth; j++) {
+          const val = kValues[i - j]
+          if (typeof val === 'number' && !isNaN(val)) {
+            sum += val
+            count++
+          }
+        }
+        if (count > 0) d = sum / count
       }
-      let sum = 0
-      for (let j = 0; j < dSmooth; j++) {
-        sum += kValues[i - j]
-      }
-      results.push({ k: kValues[i], d: sum / dSmooth })
+      
+      // Ensure we don't push NaN to UI
+      results.push({ 
+        k: isNaN(k) ? null : k, 
+        d: isNaN(d) ? null : d 
+      })
     }
 
     return results
