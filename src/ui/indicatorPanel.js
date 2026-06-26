@@ -17,6 +17,7 @@ const INDICATORS = [
   { name: 'MACD', label: 'MACD',               type: 'subchart', hasPeriod: false },
   { name: 'KDJ',  label: 'KDJ',                type: 'subchart', hasPeriod: false },
   { name: 'WR',   label: 'Williams %R',        type: 'subchart', hasPeriod: true  },
+  { name: 'StochRSI', label: 'Stoch RSI',      type: 'subchart', hasPeriod: true  },
 ]
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ const _state = {
     MACD: { enabled: false },
     KDJ:  { enabled: false },
     WR:   { enabled: false, period: 14 },
+    StochRSI: { enabled: false, period: 14 },
   },
   activeTab:  'crypto',
   watchlist: {
@@ -49,7 +50,16 @@ const LS_PREFIX    = 'chartpro:'
 for (const key of PERSIST_KEYS) {
   try {
     const saved = localStorage.getItem(LS_PREFIX + key)
-    if (saved != null) _state[key] = JSON.parse(saved)
+    if (saved != null) {
+      const parsed = JSON.parse(saved)
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+        // Merge objects (like indicators) so new defaults aren't lost
+        _state[key] = { ..._state[key], ...parsed }
+      } else {
+        // Arrays or primitives
+        _state[key] = parsed
+      }
+    }
   } catch (_) {}
 }
 

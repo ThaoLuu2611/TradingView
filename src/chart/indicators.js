@@ -4,6 +4,11 @@
 
 import { on, get } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
+import { stochRsiIndicator } from './stochRSI.js'
+
+if (window.klinecharts) {
+  window.klinecharts.registerIndicator(stochRsiIndicator)
+}
 
 // KLineChart v9: method names are createIndicator / removeIndicator
 const INDICATOR_NAME_MAP = {
@@ -14,6 +19,7 @@ const INDICATOR_NAME_MAP = {
   MACD: 'MACD',
   KDJ:  'KDJ',
   WR:   'WR',
+  StochRSI: 'STOCHRSI',
 }
 
 const OVERLAY_INDICATORS = new Set(['MA', 'EMA', 'BB'])
