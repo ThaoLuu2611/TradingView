@@ -1,0 +1,15 @@
+export const EVENTS = {
+  SYMBOL_CHANGE:    'symbol:change',
+  TIMEFRAME_CHANGE: 'timeframe:change',
+  CHARTTYPE_CHANGE: 'charttype:change',
+  INDICATOR_TOGGLE: 'indicator:toggle',
+  INDICATOR_PERIOD: 'indicator:period',
+  DRAWING_TOOL:     'drawing:tool',
+  DRAWING_CLEAR:    'drawing:clear',
+  PRICES_UPDATE:    'prices:update',
+  TF_PIN_TOGGLE:    'tf:pin',
+  LOADING:          'app:loading',
+  ERROR:            'app:error',
+  COMPARE_OPEN:     'compare:open',
+  COMPARE_CLOSE:    'compare:close',
+}

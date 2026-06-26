@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChartPro — Trading Charts</title>
+  <meta name="description" content="Personal trading chart app with crypto and stocks"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ROW 1: Navbar -->
+  <div id="navbar" class="navbar">
+    <div class="logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22,12 18,7 13,12 9,7 2,14"/></svg>
+      ChartPro
+    </div>
+    <div style="width:1px;height:20px;background:#e0e3eb"></div>
+    <div class="navbar-symbol">
+      <span class="sym-name" id="sym-name">BTCUSDT</span>
+      <button class="sym-icon-btn" id="btn-sym-type" title="Symbol type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 9l10 13L22 9z"/></svg>
+      </button>
+      <button class="sym-icon-btn" id="btn-compare" title="Compare symbols">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <span class="sym-price" id="sym-price">&#8212;</span>
+      <span class="sym-change" id="sym-change"></span>
+      <span class="spinner" id="nav-spinner"></span>
+    </div>
+    <div class="navbar-spacer"></div>
+  </div>
+
+  <!-- ROW 2: Toolbar -->
+  <div id="toolbar" class="toolbar">
+    <div id="tf-buttons"></div>
+    <div class="tf-dropdown-wrap">
+      <button class="tf-more-btn" id="btn-tf-more">&#8964;</button>
+      <div class="tf-drop" id="tfDrop">
+        <div class="tf-drop-add">&#43; Add custom interval...</div>
+        <div id="tf-drop-content"></div>
+      </div>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="candle-wrap">
+      <button class="tb-btn" id="btn-candle-type">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="4" height="12"/><line x1="4" y1="3" x2="4" y2="6"/><line x1="4" y1="18" x2="4" y2="21"/><rect x="10" y="3" width="4" height="16"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="19" x2="12" y2="23"/><rect x="18" y="8" width="4" height="10"/><line x1="20" y1="5" x2="20" y2="8"/><line x1="20" y1="18" x2="20" y2="21"/></svg>
+        <span id="candle-label">Candle</span> &#9662;
+      </button>
+      <div class="candle-drop" id="candleDrop">
+        <div class="candle-drop-item active" data-type="candle"><span>Candlestick</span><span class="candle-check">&#10003;</span></div>
+        <div class="candle-drop-item" data-type="line"><span>Line</span></div>
+      </div>
+    </div>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="btn-indicators">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      Indicators
+    </button>
+    <div class="tb-spacer"></div>
+    <div class="search-box" id="search-box">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b2b5be" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search symbol..." id="search-input" autocomplete="off"/>
+      <div class="search-drop" id="searchDrop"></div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div id="body">
+
+    <!-- LEFT PANEL -->
+    <div id="left-panel" class="left-panel" style="position:relative">
+      <button class="lp-btn active" id="btn-trendline" title="Trendline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="19" cy="5" r="2" fill="currentColor" stroke="none"/><line x1="6.4" y1="17.6" x2="17.6" y2="6.4"/></svg>
+      </button>
+      <button class="lp-btn" id="btn-fib" title="Fibonacci">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="5" x2="21" y2="5"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="13" x2="21" y2="13"/><line x1="3" y1="17" x2="21" y2="17"/><circle cx="3" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="13" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="17" r="1.5" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <div class="lp-spacer"></div>
+      <button class="lp-btn" id="btn-clear" title="Clear drawings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+
+      <!-- Trendline submenu -->
+      <div class="lp-submenu" id="trendMenu" style="top:8px">
+        <div class="lp-sub-section">Lines</div>
+        <div class="lp-sub-item selected" data-subtool="trendline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="19" cy="5" r="2" fill="currentColor" stroke="none"/><line x1="6.4" y1="17.6" x2="17.6" y2="6.4"/></svg>Trendline</div>
+        <div class="lp-sub-item" data-subtool="rayLine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2" fill="currentColor" stroke="none"/><line x1="6.4" y1="17.6" x2="22" y2="4"/><polyline points="18 4 22 4 22 8"/></svg>Ray</div>
+        <div class="lp-sub-item" data-subtool="horizontalLine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="4" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="6" y1="12" x2="22" y2="12"/><line x1="22" y1="10" x2="22" y2="14"/></svg>Horizontal line</div>
+        <div class="lp-sub-item" data-subtool="horizontalRayLine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="4" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="6" y1="12" x2="22" y2="12"/><polyline points="18 9 22 12 18 15"/></svg>Horizontal ray</div>
+        <div class="lp-sub-item" data-subtool="verticalLine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"/><line x1="10" y1="3" x2="14" y2="3"/><line x1="10" y1="21" x2="14" y2="21"/></svg>Vertical line</div>
+        <div class="lp-sub-item" data-subtool="priceLine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>Crossline</div>
+        <div class="lp-sub-divider"></div>
+        <div class="lp-sub-section">Channels</div>
+        <div class="lp-sub-item" data-subtool="parallelStraightLine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="14" x2="21" y2="14"/><circle cx="3" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="21" cy="14" r="2" fill="currentColor" stroke="none"/></svg>Parallel channel</div>
+        <div class="lp-sub-item" data-subtool="regressionTrend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="18" x2="21" y2="6"/><line x1="3" y1="14" x2="21" y2="10"/></svg>Regression trend</div>
+      </div>
+
+      <!-- Fibonacci submenu -->
+      <div class="lp-submenu" id="fibMenu" style="top:56px">
+        <div class="lp-sub-section">Fibonacci</div>
+        <div class="lp-sub-item selected" data-subtool="fibonacciRetracement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="3" y1="16" x2="21" y2="16"/></svg>Fib Retracement</div>
+        <div class="lp-sub-item" data-subtool="fibonacciExtension"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="18" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="6"/></svg>Fib Extension</div>
+        <div class="lp-sub-item" data-subtool="fibonacciChannel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Fib Channel</div>
+        <div class="lp-sub-item" data-subtool="fibonacciSpeedResistanceFan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="3" x2="12" y2="21"/><line x1="6" y1="3" x2="6" y2="21"/><line x1="18" y1="3" x2="18" y2="21"/></svg>Fib Time Zone</div>
+      </div>
+    </div>
+
+    <!-- CHART AREA -->
+    <div id="chart-wrap">
+      <div id="chart-container">
+        <div class="ohlcv-legend" id="ohlcv-legend"></div>
+      </div>
+      <div id="sub-chart"></div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div id="right-panel" class="right-panel">
+      <div class="wl-header">
+        <span class="wl-title">Watchlist</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#787b86" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+      <div class="wl-tabs">
+        <div class="wl-tab active" data-tab="crypto">Crypto</div>
+        <div class="wl-tab" data-tab="stocks">Stocks</div>
+      </div>
+      <div class="wl-list" id="wl-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- INDICATOR PANEL -->
+<div class="ind-panel" id="indPanel">
+  <div class="ind-header">
+    <span>Indicators</span>
+    <button class="ind-close" id="btn-ind-close">&#10005;</button>
+  </div>
+  <div class="ind-search">
+    <input type="text" placeholder="Search indicators..." id="ind-search-input"/>
+  </div>
+  <div id="ind-list"></div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div class="compare-overlay" id="compareOverlay">
+  <div class="compare-modal">
+    <div class="compare-header">
+      <h3>Compare symbols</h3>
+      <button class="compare-close" id="btn-compare-close">&#10005;</button>
+    </div>
+    <div class="compare-search">
+      <input type="text" placeholder="Symbol, ISIN, or CUSIP" id="compare-search-input"/>
+    </div>
+    <div class="compare-list" id="compare-list">
+      <div class="compare-section-label">RECENT SYMBOLS</div>
+      <div class="compare-row"><div class="compare-icon" style="background:#e3f2fd;color:#1565c0">&#8383;</div><div class="compare-sym-info"><div class="compare-sym-name">BTCUSDT</div><div class="compare-sym-desc">Bitcoin / TetherUS</div></div><div class="compare-source"><b>Binance</b>spot</div><div class="compare-actions"><button class="compare-action-btn">Same % scale</button><button class="compare-action-btn">New price scale</button><button class="compare-action-btn">New pane</button></div></div>
+      <div class="compare-row"><div class="compare-icon" style="background:#e8f5e9;color:#2e7d32">&Xi;</div><div class="compare-sym-info"><div class="compare-sym-name">ETHUSDT</div><div class="compare-sym-desc">Ethereum / TetherUS</div></div><div class="compare-source"><b>Binance</b>spot</div><div class="compare-actions"><button class="compare-action-btn">Same % scale</button><button class="compare-action-btn">New price scale</button><button class="compare-action-btn">New pane</button></div></div>
+      <div class="compare-row"><div class="compare-icon" style="background:#fff3e0;color:#e65100">S</div><div class="compare-sym-info"><div class="compare-sym-name">SPX</div><div class="compare-sym-desc">S&amp;P 500</div></div><div class="compare-source"><b>SPCFD</b>index</div><div class="compare-actions"><button class="compare-action-btn">Same % scale</button><button class="compare-action-btn">New price scale</button><button class="compare-action-btn">New pane</button></div></div>
+      <div class="compare-row"><div class="compare-icon" style="background:#e8eaf6;color:#283593">A</div><div class="compare-sym-info"><div class="compare-sym-name">AAPL</div><div class="compare-sym-desc">Apple Inc.</div></div><div class="compare-source"><b>NASDAQ</b>stock</div><div class="compare-actions"><button class="compare-action-btn">Same % scale</button><button class="compare-action-btn">New price scale</button><button class="compare-action-btn">New pane</button></div></div>
+      <div class="compare-row"><div class="compare-icon" style="background:#e0f2f1;color:#004d40">N</div><div class="compare-sym-info"><div class="compare-sym-name">NVDA</div><div class="compare-sym-desc">NVIDIA Corporation</div></div><div class="compare-source"><b>NASDAQ</b>stock</div><div class="compare-actions"><button class="compare-action-btn">Same % scale</button><button class="compare-action-btn">New price scale</button><button class="compare-action-btn">New pane</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// DEBUG OVERLAY — xoá sau khi fix xong
+;(function(){
+  const box = document.createElement('div')
+  box.id = '__dbg'
+  Object.assign(box.style, {
+    position:'fixed', bottom:'0', left:'0', right:'0', maxHeight:'40vh',
+    overflowY:'auto', background:'#1a1a2e', color:'#e94560', fontFamily:'monospace',
+    fontSize:'11px', padding:'8px', zIndex:'99999', display:'none',
+    borderTop:'2px solid #e94560', whiteSpace:'pre-wrap', wordBreak:'break-all'
+  })
+  document.body.appendChild(box)
+
+  function log(type, msg) {
+    box.style.display = 'block'
+    box.textContent += `[${type}] ${msg}\n`
+    box.scrollTop = box.scrollHeight
+  }
+
+  window.addEventListener('error', e => log('ERROR', `${e.message} @ ${e.filename}:${e.lineno}`))
+  window.addEventListener('unhandledrejection', e => log('PROMISE', e.reason?.stack || e.reason))
+
+  const _err = console.error.bind(console)
+  console.error = (...a) => { log('console.error', a.join(' ')); _err(...a) }
+  const _warn = console.warn.bind(console)
+  console.warn = (...a) => { log('console.warn', a.join(' ')); _warn(...a) }
+})()
+</script>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
