@@ -4,6 +4,7 @@
 
 import { get, set, on, emit } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
+import { customIntervalModal, addCustomInterval, getCustomIntervals } from './customIntervalModal.js'
 
 // ---------------------------------------------------------------------------
 // Timeframe data
@@ -83,9 +84,18 @@ const TF_SECTIONS = [
   },
 ]
 
-// ---------------------------------------------------------------------------
-// Valid API intervals (timeframes that can actually be requested)
-// ---------------------------------------------------------------------------
+
+// Map section title → custom interval unit letter
+const SECTION_UNIT = { SECONDS:'s', MINUTES:'m', HOURS:'h', DAYS:'D', WEEKS:'W', MONTHS:'M' }
+// Seconds per unit — for sorting custom intervals within a section
+const UNIT_SEC_TB  = { s:1, m:60, h:3600, D:86400, W:604800, M:2592000, t:0 }
+
+function tfSeconds(tf) {
+  const m = tf.match(/^(\d+)([smhDWMt])$/)
+  return m ? parseInt(m[1]) * (UNIT_SEC_TB[m[2]] ?? 0) : Infinity
+}
+
+// All intervals that the API can actually serve
 const VALID_INTERVALS = new Set(['1m','5m','15m','30m','1h','4h','1D','1W'])
 
 // ---------------------------------------------------------------------------
@@ -110,15 +120,21 @@ export class TimeframeDrop {
   // ── Private ─────────────────────────────────────────────────────────────
 
   _render() {
-    const pinned = get('pinnedTimeframes') || []
+    const pinned    = get('pinnedTimeframes') || []
     const currentTf = get('timeframe')
+    const customs   = getCustomIntervals()  // [{tf, label, unit, value, seconds}]
+
+    // Group custom intervals by unit letter (for merging into sections)
+    const customByUnit = {}
+    for (const ci of customs) {
+      if (!customByUnit[ci.unit]) customByUnit[ci.unit] = []
+      customByUnit[ci.unit].push(ci)
+    }
 
     let html = `<div class="tf-drop-add">&#43; Add custom interval...</div>`
 
     TF_SECTIONS.forEach((section, idx) => {
-      if (idx > 0) {
-        html += `<div class="tf-divider"></div>`
-      }
+      if (idx > 0) html += `<div class="tf-divider"></div>`
 
       html += `
         <div class="tf-drop-section">
@@ -126,17 +142,22 @@ export class TimeframeDrop {
           <span>&#8963;</span>
         </div>`
 
-      section.items.forEach(({ label, tf }) => {
+      // Merge built-in + custom items for this section, sort by seconds
+      const unit      = SECTION_UNIT[section.title]
+      const builtIn   = section.items.map(({ label, tf }) => ({ label, tf }))
+      const custom    = unit ? (customByUnit[unit] || []) : []
+      const merged    = [...builtIn, ...custom]
+      merged.sort((a, b) => tfSeconds(a.tf) - tfSeconds(b.tf))
+
+      merged.forEach(({ tf, label }) => {
         const isActive  = tf === currentTf
         const isPinned  = pinned.includes(tf)
-        // ALL timeframes show a star — grey if not pinned, gold if pinned
         const starClass = isPinned ? 'tf-star on' : 'tf-star'
-        const starHtml  = `<span class="${starClass}" data-tf="${tf}" title="${isPinned ? 'Unpin' : 'Pin to toolbar'}">&#9733;</span>`
 
         html += `
-          <div class="tf-drop-item${isActive ? ' active' : ''}" data-tf="${tf}" data-valid="${VALID_INTERVALS.has(tf)}">
+          <div class="tf-drop-item${isActive ? ' active' : ''}" data-tf="${tf}" data-valid="true">
             <span>${label}</span>
-            ${starHtml}
+            <span class="${starClass}" data-tf="${tf}" title="${isPinned ? 'Unpin' : 'Pin to toolbar'}">&#9733;</span>
           </div>`
       })
     })
@@ -145,25 +166,49 @@ export class TimeframeDrop {
   }
 
   _bindEvents() {
-    // Star click → pin toggle
     this._drop.addEventListener('click', (e) => {
-      const star = e.target.closest('.tf-star')
-      if (star) {
+      // "Add custom interval..." → open modal
+      if (e.target.closest('.tf-drop-add')) {
         e.stopPropagation()
-        const tf = star.dataset.tf
-        emit(EVENTS.TF_PIN_TOGGLE, tf)
+        this._drop.classList.remove('open')
+        customIntervalModal.open().then((result) => {
+          if (!result) return
+          addCustomInterval(result)  // chỉ thêm vào list, user bấm ★ để pin
+          this._render()
+        })
         return
       }
 
-      // Item click → change timeframe if it's a valid interval
+      // Click ANYWHERE on the item (star or row text) -> behave the exact same
       const item = e.target.closest('.tf-drop-item')
       if (item) {
-        const tf    = item.dataset.tf
-        const valid = item.dataset.valid === 'true'
-        if (valid) {
-          emit(EVENTS.TIMEFRAME_CHANGE, tf)
+        e.stopPropagation()
+        const tf = item.dataset.tf
+        const pinned = [...(get('pinnedTimeframes') || [])]
+        const idx = pinned.indexOf(tf)
+        const pinNow = idx === -1
+
+        // Toggle pin
+        if (pinNow) {
+          pinned.push(tf)
+          // Sort timeline properly by time
+          pinned.sort((a, b) => tfSeconds(a) - tfSeconds(b))
+        } else {
+          pinned.splice(idx, 1)
         }
+        set('pinnedTimeframes', pinned)
+
+        // Select this timeframe for the chart
+        emit(EVENTS.TIMEFRAME_CHANGE, tf)
+
+        // Close dropdown so user doesn't see it "jump" when toolbar width changes
         this._drop.classList.remove('open')
+
+        // Re-render internal dropdown DOM (stars and active highlights) while closed
+        this._render()
+
+        // Update toolbar outside
+        if (this._toolbar) this._toolbar._renderTfButtons()
       }
     })
 
@@ -193,6 +238,8 @@ export class Toolbar {
 
   init() {
     this.tfDrop = new TimeframeDrop()
+    this.tfDrop._toolbar = this    // link ngược để tfDrop gọi _renderTfButtons
+    customIntervalModal.init()     // tạo DOM cho modal
     this._bindDOM()
     this._bindEvents()
     this._subscribe()
@@ -264,20 +311,6 @@ export class Toolbar {
   }
 
   _subscribe() {
-    // Pin toggle → update store, re-render toolbar buttons + re-render dropdown stars
-    on(EVENTS.TF_PIN_TOGGLE, (tf) => {
-      const pinned = [...(get('pinnedTimeframes') || [])]
-      const idx    = pinned.indexOf(tf)
-      if (idx === -1) {
-        pinned.push(tf)
-      } else {
-        pinned.splice(idx, 1)
-      }
-      set('pinnedTimeframes', pinned)
-      this._renderTfButtons()        // update toolbar buttons
-      this.tfDrop._render()          // update dropdown — sao vàng ↔ xám
-    })
-
     // Timeframe change → highlight active button
     on(EVENTS.TIMEFRAME_CHANGE, (tf) => {
       set('timeframe', tf)

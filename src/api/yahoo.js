@@ -9,12 +9,25 @@ import { emit, get } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 
 // ---------------------------------------------------------------------------
-// CORS proxy — đổi sang proxy khác nếu allorigins bị chặn
+// CORS proxy list — thử lần lượt nếu cái đầu fail
 // ---------------------------------------------------------------------------
-const PROXY = 'https://api.allorigins.win/raw?url='
+const PROXIES = [
+  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+]
 
-function proxyUrl(url) {
-  return PROXY + encodeURIComponent(url)
+async function proxyFetch(url) {
+  let lastErr
+  for (const makeUrl of PROXIES) {
+    try {
+      const res = await fetch(makeUrl(url), { signal: AbortSignal.timeout(8000) })
+      if (res.ok) return res
+    } catch (e) {
+      lastErr = e
+    }
+  }
+  throw lastErr ?? new Error('All proxies failed')
 }
 
 // ---------------------------------------------------------------------------
@@ -99,7 +112,7 @@ export async function fetchStockOHLCV(ticker, interval) {
   const range = RANGE_MAP[interval]
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=${yahooInterval}&range=${range}`
 
-  const response = await fetch(proxyUrl(yahooUrl))
+  const response = await proxyFetch(yahooUrl)
   if (!response.ok) throw new Error(`Proxy error: ${response.status}`)
 
   const data   = await response.json()
@@ -132,7 +145,7 @@ export async function fetchStockOHLCV(ticker, interval) {
 export async function fetchStockPrice(ticker) {
   const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`
 
-  const response = await fetch(proxyUrl(yahooUrl))
+  const response = await proxyFetch(yahooUrl)
   if (!response.ok) throw new Error(`Proxy error: ${response.status}`)
 
   const data   = await response.json()

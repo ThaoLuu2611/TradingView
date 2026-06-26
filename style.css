@@ -191,3 +191,22 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 .spinner{width:12px;height:12px;border:2px solid #e0e3eb;border-top-color:#2962ff;border-radius:50%;animation:spin 0.6s linear infinite;display:none}
 .spinner.show{display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── CUSTOM INTERVAL MODAL ── */
+.ci-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:10000}
+.ci-overlay.open{display:flex}
+.ci-box{background:#fff;border-radius:8px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;font-family:'Inter',sans-serif}
+.ci-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f3fa;font-size:15px;font-weight:600;color:#131722}
+.ci-close{background:none;border:none;cursor:pointer;padding:4px;color:#787b86;font-size:18px;line-height:1;border-radius:4px}
+.ci-close:hover{background:#f0f3fa;color:#131722}
+.ci-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.ci-field{display:flex;align-items:center;gap:16px}
+.ci-field label{width:60px;font-size:13px;color:#787b86;flex-shrink:0}
+.ci-field select,.ci-field input{flex:1;height:36px;border:1.5px solid #e0e3eb;border-radius:6px;padding:0 10px;font-size:13px;color:#131722;outline:none;background:#fff;transition:border-color .15s}
+.ci-field select:focus,.ci-field input:focus{border-color:#2962ff}
+.ci-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #f0f3fa}
+.ci-btn-cancel{background:none;border:1.5px solid #e0e3eb;border-radius:6px;padding:6px 18px;font-size:13px;color:#131722;cursor:pointer;transition:.15s}
+.ci-btn-cancel:hover{background:#f0f3fa}
+.ci-btn-add{background:#2962ff;border:none;border-radius:6px;padding:6px 18px;font-size:13px;color:#fff;cursor:pointer;transition:.15s}
+.ci-btn-add:disabled{background:#c5cae9;cursor:not-allowed}
+.ci-btn-add:not(:disabled):hover{background:#1e53e5}

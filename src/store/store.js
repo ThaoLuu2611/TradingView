@@ -30,12 +30,28 @@ const _state = {
     ],
   },
   pinnedTimeframes: ['1m','5m','15m','1h','4h','1D','1W'],
+  customIntervals:  [],   // [{tf, label, unit, value, seconds}]
   loading: false,
   error:   null,
 }
 
 /** @type {Map<string, Set<Function>>} */
 const _listeners = new Map()
+
+// ---------------------------------------------------------------------------
+// Persistence — tự động save/load vào localStorage
+// ---------------------------------------------------------------------------
+
+const PERSIST_KEYS = ['indicators', 'pinnedTimeframes', 'customIntervals']
+const LS_PREFIX    = 'chartpro:'
+
+// Restore persisted state on module load
+for (const key of PERSIST_KEYS) {
+  try {
+    const saved = localStorage.getItem(LS_PREFIX + key)
+    if (saved != null) _state[key] = JSON.parse(saved)
+  } catch (_) {}
+}
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -52,12 +68,19 @@ export function get(key) {
 
 /**
  * Write a value into the store and emit a `state:<key>` event.
+ * Automatically persists whitelisted keys to localStorage.
  * @param {string} key
  * @param {*} value
  */
 export function set(key, value) {
   _state[key] = value
   emit(`state:${key}`, value)
+  // Persist nếu key nằm trong danh sách
+  if (PERSIST_KEYS.includes(key)) {
+    try {
+      localStorage.setItem(LS_PREFIX + key, JSON.stringify(value))
+    } catch (_) {}
+  }
 }
 
 /**

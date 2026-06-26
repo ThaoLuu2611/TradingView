@@ -33,16 +33,40 @@ const INTERVAL_MAP = {
   '12M': '1M',
 }
 
+// Binance intervals in seconds — dùng để fallback custom intervals
+const BINANCE_FALLBACK = [
+  { bi:'1m',  sec:60 },   { bi:'3m',  sec:180 },  { bi:'5m',  sec:300 },
+  { bi:'15m', sec:900 },  { bi:'30m', sec:1800 },  { bi:'1h',  sec:3600 },
+  { bi:'2h',  sec:7200 }, { bi:'4h',  sec:14400 }, { bi:'6h',  sec:21600 },
+  { bi:'8h',  sec:28800 },{ bi:'12h', sec:43200 }, { bi:'1d',  sec:86400 },
+  { bi:'3d',  sec:259200},{ bi:'1w',  sec:604800 },{ bi:'1M',  sec:2592000 },
+]
+const UNIT_SEC_BI = { s:1, m:60, h:3600, D:86400, W:604800, M:2592000 }
+
+function nearestBinanceInterval(tf) {
+  const m = tf.match(/^(\d+)([smhDWM])$/)
+  if (!m) return null
+  const sec = parseInt(m[1]) * (UNIT_SEC_BI[m[2]] ?? 1)
+  let best = BINANCE_FALLBACK[0]
+  let minD = Infinity
+  for (const row of BINANCE_FALLBACK) {
+    const d = Math.abs(sec - row.sec)
+    if (d < minD) { minD = d; best = row }
+  }
+  return best.bi
+}
+
 /**
  * Returns [{timestamp, open, high, low, close, volume}, ...] sorted ascending
  * @param {string} symbol - e.g. 'BTCUSDT'
- * @param {string} interval - app format e.g. '1m', '1h', '1D'
+ * @param {string} interval - app format e.g. '1m', '1h', '1D', hoặc custom '7m'
  * @param {number} limit - number of candles to fetch (default 500)
  */
 export async function fetchOHLCV(symbol, interval, limit = 500) {
-  const binanceInterval = INTERVAL_MAP[interval];
+  // Ưu tiên map tĩnh, fallback về interval gần nhất cho custom intervals
+  const binanceInterval = INTERVAL_MAP[interval] ?? nearestBinanceInterval(interval)
   if (!binanceInterval) {
-    throw new Error(`Unsupported interval: ${interval}`);
+    throw new Error(`Unsupported interval: ${interval}`)
   }
 
   const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${binanceInterval}&limit=${limit}`;
