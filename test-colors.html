@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+</head>
+<body>
+  <div id="chart" style="width: 600px; height: 400px;"></div>
+  <script>
+    const chart = klinecharts.init('chart');
+    chart.applyNewData([{ timestamp: Date.now(), open: 1, high: 2, low: 1, close: 1, volume: 1 }]);
+    
+    // Attempt to set EMA color to solid RED, GREEN, BLUE globally
+    chart.setStyles({
+      indicator: {
+        lines: [
+          { color: '#ff0000', style: 'solid', size: 2 },
+          { color: '#00ff00', style: 'solid', size: 2 },
+          { color: '#0000ff', style: 'solid', size: 2 }
+        ]
+      }
+    });
+
+    chart.createIndicator('EMA', false, { id: 'pane1' });
+  </script>
+</body>
+</html>

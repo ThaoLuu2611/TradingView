@@ -47,9 +47,10 @@ export class Navbar {
     const btnSaveLayout = document.getElementById('btn-save-layout')
     if (btnSaveLayout) {
       btnSaveLayout.addEventListener('click', async () => {
+        emit(EVENTS.BEFORE_SAVE)
         const { forceSave } = await import('../store/store.js')
         forceSave()
-        this._showToast('Layout saved successfully')
+        this._showToast('Layout saved successfully', 'success')
       })
     }
 
@@ -118,8 +119,9 @@ export class Navbar {
   /**
    * Display a toast notification for 3 seconds.
    * @param {string} msg
+   * @param {string} type - 'error' or 'success'
    */
-  _showToast(msg) {
+  _showToast(msg, type = 'error') {
     if (!this._toast) return
 
     // Clear any existing timer so multiple errors don't race
@@ -129,6 +131,11 @@ export class Navbar {
     }
 
     this._toast.textContent = msg
+    this._toast.classList.remove('success')
+    if (type === 'success') {
+      this._toast.classList.add('success')
+    }
+    
     this._toast.classList.add('show')
 
     this._toastTimer = setTimeout(() => {

@@ -2,7 +2,7 @@
 // indicators.js – Technical indicator manager (KLineChart v9 API)
 // ---------------------------------------------------------------------------
 
-import { on, get } from '../store/store.js'
+import { on, get, set } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 import { stochRsiIndicator } from './stochRSI.js'
 
@@ -65,6 +65,35 @@ class IndicatorManager {
         }, 150)
       }
     })
+
+    on(EVENTS.BEFORE_SAVE, () => {
+      const state = get('indicators') || {}
+      let changed = false
+      
+      // Sync overlays
+      for (const name of Array.from(this._overlaysAdded)) {
+        const klineName = INDICATOR_NAME_MAP[name]
+        const ind = this._chart.getIndicatorByPaneId('candle_pane', klineName)
+        if (!ind) {
+          this._overlaysAdded.delete(name)
+          if (state[name]) { state[name].enabled = false; changed = true; }
+        }
+      }
+      
+      // Sync sub-panes
+      for (const [name, paneId] of this._paneIds.entries()) {
+        const klineName = INDICATOR_NAME_MAP[name]
+        const ind = this._chart.getIndicatorByPaneId(paneId, klineName)
+        if (!ind) {
+          this._paneIds.delete(name)
+          if (state[name]) { state[name].enabled = false; changed = true; }
+        }
+      }
+      
+      if (changed) {
+        set('indicators', state)
+      }
+    })
   }
 
   /** Add indicators from store state on first load */
@@ -96,7 +125,13 @@ class IndicatorManager {
     
     if (options.lines) {
       const enabledLines = options.lines.filter(l => l.enabled);
-      calcParams = enabledLines.map(l => Number(l.period));
+      
+      if (name === 'MA' || name === 'EMA') {
+        calcParams = enabledLines.map(l => Number(l.period));
+      } else if (options.calcParams) {
+        calcParams = options.calcParams;
+      }
+
       if (enabledLines.length > 0) {
         styles = {
           lines: enabledLines.map(l => ({ color: l.color, size: 1, style: 'solid' }))
@@ -116,20 +151,21 @@ class IndicatorManager {
     }
     
     const value = { name: klineName };
-    if (calcParams) {
-      value.calcParams = calcParams;
+    if (calcParams) value.calcParams = calcParams;
+    if (styles) value.styles = styles;
+
+    if (calcParams || styles) {
       if (this._chart) {
         try {
-          this._chart.overrideIndicator({ name: klineName, calcParams });
+          this._chart.overrideIndicator({ name: klineName, calcParams, styles });
         } catch (e) {}
       }
     }
-    if (styles) value.styles = styles;
 
     const isOverlay = OVERLAY_INDICATORS.has(name)
     const isAlreadyAdded = isOverlay ? this._overlaysAdded.has(name) : this._paneIds.has(name)
 
-    // If already added, just update it without destroying the pane
+    // If already added, override the specific pane to apply new calcParams and styles without destroying it
     if (isAlreadyAdded) {
       const paneId = isOverlay ? 'candle_pane' : this._paneIds.get(name)
       if (this._chart) {

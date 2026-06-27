@@ -29,32 +29,25 @@ const ID_TO_SYMBOL = Object.fromEntries(
  * @param {string[]} symbols - array of app symbols e.g. ['BTCUSDT', 'ETHUSDT']
  */
 export async function fetchPrices(symbols) {
-  const ids = symbols
-    .map((s) => SYMBOL_TO_ID[s])
-    .filter(Boolean);
+  if (!symbols || symbols.length === 0) return {};
 
-  if (ids.length === 0) return {};
-
-  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=usd&include_24hr_change=true`;
+  const symbolsParam = JSON.stringify(symbols);
+  const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent(symbolsParam)}`;
+  
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+    throw new Error(`Binance API error: ${response.status} ${response.statusText}`);
   }
 
   const data = await response.json();
 
-  // Convert from { bitcoin: { usd: 94250, usd_24h_change: 2.34 } }
-  // to { BTCUSDT: { price: 94250, change: 2.34 } }
   const result = {};
-  for (const [id, values] of Object.entries(data)) {
-    const symbol = ID_TO_SYMBOL[id];
-    if (symbol) {
-      result[symbol] = {
-        price: values.usd,
-        change: values.usd_24h_change,
-      };
-    }
+  for (const item of data) {
+    result[item.symbol] = {
+      price: parseFloat(item.lastPrice),
+      change: parseFloat(item.priceChangePercent),
+    };
   }
 
   return result;

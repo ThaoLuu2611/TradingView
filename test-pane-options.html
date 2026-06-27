@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+</head>
+<body>
+  <div id="chart" style="width: 600px; height: 400px;"></div>
+  <script>
+    const chart = klinecharts.init('chart');
+    const paneId = chart.createIndicator('MACD', false);
+    console.log(chart.getPaneOptions(paneId) ? 'EXISTS' : 'NOT EXISTS');
+    chart.removeIndicator(paneId);
+    console.log(chart.getPaneOptions(paneId) ? 'EXISTS' : 'NOT EXISTS');
+  </script>
+</body>
+</html>

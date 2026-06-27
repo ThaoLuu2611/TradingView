@@ -8,12 +8,12 @@ import { EVENTS } from '../store/events.js'
 const INDICATORS = [
   { name: 'MA',   label: 'Moving Average',     type: 'main', hasLines: true },
   { name: 'EMA',  label: 'Exp Moving Average', type: 'main', hasLines: true },
-  { name: 'BB',   label: 'Bollinger Bands',    type: 'main', hasLines: false },
-  { name: 'RSI',  label: 'Relative Strength',  type: 'sub',  hasLines: false },
-  { name: 'MACD', label: 'MACD',               type: 'sub',  hasLines: false },
-  { name: 'KDJ',  label: 'KDJ',                type: 'sub',  hasLines: false },
-  { name: 'WR',   label: 'Williams %R',        type: 'sub',  hasLines: false },
-  { name: 'StochRSI', label: 'Stoch RSI',      type: 'sub',  hasLines: false },
+  { name: 'BB',   label: 'Bollinger Bands',    type: 'main', hasLines: true },
+  { name: 'RSI',  label: 'Relative Strength',  type: 'sub',  hasLines: true },
+  { name: 'MACD', label: 'MACD',               type: 'sub',  hasLines: true },
+  { name: 'KDJ',  label: 'KDJ',                type: 'sub',  hasLines: true },
+  { name: 'WR',   label: 'Williams %R',        type: 'sub',  hasLines: true },
+  { name: 'StochRSI', label: 'Stoch RSI',      type: 'sub',  hasLines: true },
 ]
 
 export class IndicatorModal {
@@ -109,8 +109,10 @@ export class IndicatorModal {
   }
 
   reset() {
-    this._tempState = JSON.parse(JSON.stringify(get('indicators') || {}))
-    this._render()
+    import('../store/store.js').then(({ DEFAULT_INDICATORS, set, forceSave }) => {
+      this._tempState = JSON.parse(JSON.stringify(DEFAULT_INDICATORS))
+      this._render()
+    })
   }
 
   _render() {
@@ -154,6 +156,7 @@ export class IndicatorModal {
           const name = e.target.dataset.name
           this._tempState[name] = this._tempState[name] || {}
           this._tempState[name].enabled = e.target.checked
+          this._applyChanges()
         })
       }
     })
@@ -200,18 +203,21 @@ export class IndicatorModal {
         el.addEventListener('change', e => {
           const idx = parseInt(e.target.dataset.idx)
           this._tempState[ind.name].lines[idx].enabled = e.target.checked
+          this._applyChanges()
         })
       })
       this._contentSettings.querySelectorAll('.line-period').forEach(el => {
         el.addEventListener('input', e => {
           const idx = parseInt(e.target.dataset.idx)
           this._tempState[ind.name].lines[idx].period = Number(e.target.value)
+          this._applyChanges()
         })
       })
       this._contentSettings.querySelectorAll('.line-color').forEach(el => {
         el.addEventListener('input', e => {
           const idx = parseInt(e.target.dataset.idx)
           this._tempState[ind.name].lines[idx].color = e.target.value
+          this._applyChanges()
         })
       })
     } else {
@@ -221,8 +227,15 @@ export class IndicatorModal {
           this._tempState[ind.name] = this._tempState[ind.name] || {}
           this._tempState[ind.name].calcParams = this._tempState[ind.name].calcParams || [14]
           this._tempState[ind.name].calcParams[0] = Number(e.target.value)
+          this._applyChanges()
         })
       }
+    }
+  }
+
+  _applyChanges() {
+    for (const [name, config] of Object.entries(this._tempState)) {
+      emit(EVENTS.INDICATOR_TOGGLE, { name, enabled: config.enabled, calcParams: config.calcParams, lines: config.lines })
     }
   }
 }

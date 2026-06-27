@@ -13,4 +13,5 @@ export const EVENTS = {
   COMPARE_OPEN:     'compare:open',
   COMPARE_CLOSE:    'compare:close',
   CHART_READY:      'chart:ready',
+  BEFORE_SAVE:      'app:before_save',
 }

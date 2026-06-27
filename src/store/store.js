@@ -2,43 +2,45 @@
 // store.js – Lightweight pub/sub store for the TradingView-clone app
 // ---------------------------------------------------------------------------
 
+export const DEFAULT_INDICATORS = {
+  MA:   { 
+    enabled: false, 
+    lines: [
+      { period: 7, color: '#fcc201', enabled: true },
+      { period: 25, color: '#e83d8c', enabled: true },
+      { period: 99, color: '#9b7ef6', enabled: true },
+      { period: 0, color: '#f7525f', enabled: false },
+      { period: 0, color: '#2962ff', enabled: false },
+      { period: 0, color: '#ff6d00', enabled: false }
+    ]
+  },
+  EMA:  { 
+    enabled: false, 
+    lines: [
+      { period: 7, color: '#fcc201', enabled: true },
+      { period: 25, color: '#e83d8c', enabled: true },
+      { period: 99, color: '#9b7ef6', enabled: true },
+      { period: 0, color: '#f7525f', enabled: false },
+      { period: 0, color: '#2962ff', enabled: false },
+      { period: 0, color: '#ff6d00', enabled: false }
+    ]
+  },
+  BB:   { enabled: false, calcParams: [20, 2], lines: [{ period: 20, color: '#9b7ef6', enabled: true }, { period: 20, color: '#fcc201', enabled: true }, { period: 20, color: '#e83d8c', enabled: true }] },
+  RSI:  { enabled: true,  calcParams: [14], lines: [{ period: 14, color: '#fcc201', enabled: true }] },
+  MACD: { enabled: false, calcParams: [12, 26, 9], lines: [{ period: 12, color: '#e83d8c', enabled: true }, { period: 26, color: '#2962ff', enabled: true }] },
+  KDJ:  { enabled: false, calcParams: [9, 3, 3], lines: [{ period: 9, color: '#fcc201', enabled: true }, { period: 3, color: '#e83d8c', enabled: true }, { period: 3, color: '#9b7ef6', enabled: true }] },
+  WR:   { enabled: false, calcParams: [14], lines: [{ period: 14, color: '#fcc201', enabled: true }] },
+  StochRSI: { enabled: false, calcParams: [14, 14, 3, 3], lines: [{ period: 14, color: '#2962ff', enabled: true }, { period: 14, color: '#00bcd4', enabled: true }] },
+};
+
 const _state = {
   symbol:              'BTCUSDT',
   timeframe:           '1D',
   chartType:           'candle',
   activeDrawingTool:   'trendline',
   activeDrawingSubtool:'trendline',
-  indicators: {
-    MA:   { 
-      enabled: false, 
-      lines: [
-        { period: 7, color: '#fcc201', enabled: true },
-        { period: 25, color: '#e83d8c', enabled: true },
-        { period: 99, color: '#9b7ef6', enabled: true },
-        { period: 0, color: '#f7525f', enabled: false },
-        { period: 0, color: '#2962ff', enabled: false },
-        { period: 0, color: '#ff6d00', enabled: false }
-      ]
-    },
-    EMA:  { 
-      enabled: false, 
-      lines: [
-        { period: 7, color: '#fcc201', enabled: true },
-        { period: 25, color: '#e83d8c', enabled: true },
-        { period: 99, color: '#9b7ef6', enabled: true },
-        { period: 0, color: '#f7525f', enabled: false },
-        { period: 0, color: '#2962ff', enabled: false },
-        { period: 0, color: '#ff6d00', enabled: false }
-      ]
-    },
-    BB:   { enabled: false, calcParams: [20, 2] },
-    RSI:  { enabled: true,  calcParams: [14] },
-    MACD: { enabled: false, calcParams: [12, 26, 9] },
-    KDJ:  { enabled: false, calcParams: [9, 3, 3] },
-    WR:   { enabled: false, calcParams: [14] },
-    StochRSI: { enabled: false, calcParams: [14, 14, 3, 3] },
-  },
-  activeTab:  'crypto',
+  indicators:          JSON.parse(JSON.stringify(DEFAULT_INDICATORS)),
+  activeTab:           'crypto',
   watchlist: {
     crypto: [
       'BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT',

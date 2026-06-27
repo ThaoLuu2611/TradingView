@@ -12,6 +12,12 @@ export const stochRsiIndicator = {
     { key: 'k', title: '%K: ', type: 'line' },
     { key: 'd', title: '%D: ', type: 'line' }
   ],
+  styles: {
+    lines: [
+      { color: '#2962ff', size: 1, style: 'solid' },
+      { color: '#00bcd4', size: 1, style: 'solid' }
+    ]
+  },
   calc: (dataList, indicator) => {
     const params = indicator.calcParams || []
     const rsiLength = Number(params[0]) || 14
