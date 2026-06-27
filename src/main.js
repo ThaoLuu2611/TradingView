@@ -9,7 +9,7 @@ import { Navbar }          from './ui/navbar.js'
 import { Toolbar }         from './ui/toolbar.js'
 import { LeftPanel }       from './ui/leftPanel.js'
 import { Watchlist }       from './ui/watchlist.js'
-import { IndicatorPanel }  from './ui/indicatorPanel.js'
+import { IndicatorModal }  from './ui/indicatorModal.js'
 import { SearchBar }       from './ui/searchBar.js'
 import { CompareModal }    from './ui/compareModal.js'
 
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const toolbar  = new Toolbar()
   const leftPanel = new LeftPanel()
   const watchlist = new Watchlist()
-  const indPanel  = new IndicatorPanel()
+  const indModal  = new IndicatorModal()
   const searchBar = new SearchBar()
   const compareModal = new CompareModal()
 
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   toolbar.init()
   leftPanel.init()
   watchlist.init()
-  indPanel.init()
+  indModal.init()
   searchBar.init()
   compareModal.init()
 

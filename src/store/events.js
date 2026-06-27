@@ -12,4 +12,5 @@ export const EVENTS = {
   ERROR:            'app:error',
   COMPARE_OPEN:     'compare:open',
   COMPARE_CLOSE:    'compare:close',
+  CHART_READY:      'chart:ready',
 }

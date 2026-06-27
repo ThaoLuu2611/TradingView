@@ -122,6 +122,7 @@ class KLineChartWrapper {
       }
 
       this._chart.applyNewData(data)
+      emit(EVENTS.CHART_READY, true)
     } catch (err) {
       console.error('[KLineChartWrapper] loadData error:', err)
       emit(EVENTS.ERROR, err.message ?? String(err))

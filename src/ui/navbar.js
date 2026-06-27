@@ -44,6 +44,15 @@ export class Navbar {
       })
     }
 
+    const btnSaveLayout = document.getElementById('btn-save-layout')
+    if (btnSaveLayout) {
+      btnSaveLayout.addEventListener('click', async () => {
+        const { forceSave } = await import('../store/store.js')
+        forceSave()
+        this._showToast('Layout saved successfully')
+      })
+    }
+
     // #btn-sym-type intentionally does nothing
     // (placeholder for future symbol-type info panel)
   }

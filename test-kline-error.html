@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+</head>
+<body style="margin: 0; padding: 0;">
+  <div id="chart" style="width: 100%; height: 400px; background: #eee;"></div>
+  <script>
+    try {
+      const chart = klinecharts.init('chart')
+      chart.applyNewData([{ close: 10, high: 12, low: 9, open: 11, timestamp: 1 }])
+      
+      const v1 = { name: 'EMA' };
+      chart.createIndicator(v1, true, { id: 'candle_pane' })
+      
+      const v2 = { name: 'RSI' };
+      const paneId = chart.createIndicator(v2, false, { height: 80 })
+      
+      document.body.innerHTML += `<p>Success. paneId = ${paneId}</p>`
+    } catch (e) {
+      document.body.innerHTML += `<p>Error: ${e.message}</p>`
+      document.body.innerHTML += `<p>Stack: ${e.stack}</p>`
+    }
+  </script>
+</body>
+</html>

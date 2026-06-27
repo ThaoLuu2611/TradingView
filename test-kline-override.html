@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+</head>
+<body>
+  <div id="chart" style="width: 800px; height: 600px;"></div>
+  <script>
+    const chart = klinecharts.init('chart')
+    chart.applyNewData([
+      { close: 10, high: 12, low: 9, open: 11, timestamp: 1 },
+      { close: 11, high: 13, low: 10, open: 10, timestamp: 2 },
+      { close: 12, high: 14, low: 11, open: 11, timestamp: 3 },
+    ])
+    
+    // Override template first
+    chart.overrideIndicator({ name: 'EMA', calcParams: [6] })
+    
+    chart.createIndicator({
+      name: 'EMA',
+      calcParams: [6],
+      styles: { lines: [{ color: 'red' }] }
+    }, false, { id: 'candle_pane' })
+  </script>
+</body>
+</html>

@@ -62,7 +62,7 @@ export class PaneControlManager {
             // Restore sub-indicators based on store state
             for (const [indName, config] of Object.entries(indicators)) {
               if (config.enabled && !['MA','EMA','BB'].includes(indName)) {
-                indicatorManager.add(indName, { period: config.period })
+                indicatorManager.add(indName, { calcParams: config.calcParams, lines: config.lines })
               }
             }
           }
@@ -114,7 +114,7 @@ export class PaneControlManager {
             // Add ONLY this sub-pane back, but with full safe height!
             const myConfig = indicators[name]
             if (myConfig) {
-              indicatorManager.add(name, { period: myConfig.period, height: safeHeight })
+              indicatorManager.add(name, { calcParams: myConfig.calcParams, lines: myConfig.lines, height: safeHeight })
             }
             
             // Hide the candle pane's visibility so it doesn't bleed through
@@ -133,7 +133,7 @@ export class PaneControlManager {
             // Restore all enabled sub-indicators back to normal height
             for (const [indName, config] of Object.entries(indicators)) {
               if (config.enabled && !['MA','EMA','BB'].includes(indName)) {
-                indicatorManager.add(indName, { period: config.period })
+                indicatorManager.add(indName, { calcParams: config.calcParams, lines: config.lines })
               }
             }
             

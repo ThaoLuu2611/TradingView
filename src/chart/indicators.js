@@ -26,8 +26,9 @@ const OVERLAY_INDICATORS = new Set(['MA', 'EMA', 'BB'])
 
 class IndicatorManager {
   constructor() {
-    this._chart   = null
+    this._chart = null
     this._paneIds = new Map() // name → paneId (sub-chart indicators only)
+    this._overlaysAdded = new Set() // name → true (overlay indicators)
     this._paneControlManager = null
   }
 
@@ -40,9 +41,9 @@ class IndicatorManager {
     this._paneControlManager = paneControlManager
 
     // Subscribe to toggle events
-    on(EVENTS.INDICATOR_TOGGLE, ({ name, enabled, period }) => {
+    on(EVENTS.INDICATOR_TOGGLE, ({ name, enabled, calcParams, lines }) => {
       if (enabled) {
-        this.add(name, { period })
+        this.add(name, { calcParams, lines })
       } else {
         this.remove(name)
       }
@@ -53,7 +54,17 @@ class IndicatorManager {
     })
 
     // Auto-render indicators that are enabled by default in store (e.g. RSI)
-    this._initFromStore()
+    // Wait for the first data to load so CSS grid layout settles and chart allocates height
+    let initialized = false
+    on(EVENTS.CHART_READY, () => {
+      if (!initialized) {
+        initialized = true
+        // Give KLineChart's internal layout engine a moment to update pane dimensions
+        setTimeout(() => {
+          this._initFromStore()
+        }, 150)
+      }
+    })
   }
 
   /** Add indicators from store state on first load */
@@ -61,7 +72,7 @@ class IndicatorManager {
     const indicators = get('indicators') || {}
     for (const [name, config] of Object.entries(indicators)) {
       if (config.enabled) {
-        this.add(name, { period: config.period })
+        this.add(name, { calcParams: config.calcParams, lines: config.lines })
       }
     }
   }
@@ -69,7 +80,7 @@ class IndicatorManager {
   /**
    * Add a technical indicator to the chart.
    * @param {string} name - app indicator name (e.g. 'RSI')
-   * @param {{ period?: number }} [options]
+   * @param {object} [options]
    */
   add(name, options = {}) {
     if (!this._chart) return
@@ -80,32 +91,80 @@ class IndicatorManager {
       return
     }
 
-    // v9 API: pass object with name + optional calcParams
-    const period = options.period
-    const value = period != null
-      ? { name: klineName, calcParams: [period] }
-      : { name: klineName }
+    let calcParams = null
+    let styles = null
+    
+    if (options.lines) {
+      const enabledLines = options.lines.filter(l => l.enabled);
+      calcParams = enabledLines.map(l => Number(l.period));
+      if (enabledLines.length > 0) {
+        styles = {
+          lines: enabledLines.map(l => ({ color: l.color, size: 1, style: 'solid' }))
+        };
+      }
+    } else if (options.calcParams) {
+      calcParams = options.calcParams;
+    } else if (options.period != null) {
+      const defaults = {
+        BOLL: [20, 2],
+        MACD: [12, 26, 9],
+        KDJ: [9, 3, 3],
+        STOCHRSI: [14, 14, 3, 3]
+      };
+      calcParams = defaults[klineName] ? [...defaults[klineName]] : [options.period];
+      calcParams[0] = options.period;
+    }
+    
+    const value = { name: klineName };
+    if (calcParams) {
+      value.calcParams = calcParams;
+      if (this._chart) {
+        try {
+          this._chart.overrideIndicator({ name: klineName, calcParams });
+        } catch (e) {}
+      }
+    }
+    if (styles) value.styles = styles;
 
-    try {
-      if (OVERLAY_INDICATORS.has(name)) {
-        // Overlay on main candle pane
-        this._chart.createIndicator(value, false, { id: 'candle_pane' })
-      } else {
-        // New sub-chart pane; returns paneId
-        const height = options.height || 100
-        const paneId = this._chart.createIndicator(value, false, { height })
-        if (paneId) {
-          this._paneIds.set(name, paneId)
-          // Wait slightly for DOM to be ready before attaching controls
-          setTimeout(() => {
-            if (this._paneControlManager) {
-              this._paneControlManager.attach(paneId, name)
-            }
-          }, 50)
+    const isOverlay = OVERLAY_INDICATORS.has(name)
+    const isAlreadyAdded = isOverlay ? this._overlaysAdded.has(name) : this._paneIds.has(name)
+
+    // If already added, just update it without destroying the pane
+    if (isAlreadyAdded) {
+      const paneId = isOverlay ? 'candle_pane' : this._paneIds.get(name)
+      if (this._chart) {
+        try {
+          this._chart.overrideIndicator(value, paneId)
+        } catch (e) {
+          console.warn(`[IndicatorManager] Failed to update ${klineName}:`, e)
         }
       }
-    } catch (e) {
-      console.error(`[IndicatorManager] add(${name}) failed:`, e)
+      return
+    }
+
+    try {
+      if (isOverlay) {
+        // Overlay on main candle pane - stack true so it shares the Y-axis properly
+        this._chart.createIndicator(value, true, { id: 'candle_pane' })
+        this._overlaysAdded.add(name)
+      } else {
+        // New sub-chart pane; create without height then setPaneOptions to force layout adjustment
+        const paneId = this._chart.createIndicator(value, false)
+        if (paneId) {
+          this._paneIds.set(name, paneId)
+          try {
+            this._chart.setPaneOptions({ id: paneId, height: 80, minHeight: 30 })
+          } catch(e) {}
+          // Wait slightly for DOM to be ready before attaching controls
+          setTimeout(() => {
+            this._paneControlManager?.attach(paneId, name)
+          }, 50)
+        } else {
+          console.warn(`[IndicatorManager] createIndicator returned null for ${klineName}. Possibly due to height limits.`);
+        }
+      }
+    } catch (err) {
+      console.error(`[IndicatorManager] Failed to add ${name}:`, err)
     }
   }
 
@@ -122,11 +181,13 @@ class IndicatorManager {
     try {
       if (OVERLAY_INDICATORS.has(name)) {
         this._chart.removeIndicator('candle_pane', klineName)
+        this._overlaysAdded.delete(name)
       } else {
         const paneId = this._paneIds.get(name)
         if (paneId != null) {
           this._chart.removeIndicator(paneId, klineName)
           this._paneIds.delete(name)
+          this._paneControlManager?.remove(paneId)
         }
       }
     } catch (e) {

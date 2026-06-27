@@ -9,14 +9,34 @@ const _state = {
   activeDrawingTool:   'trendline',
   activeDrawingSubtool:'trendline',
   indicators: {
-    MA:   { enabled: false, period: 20, color: '#f59e0b' },
-    EMA:  { enabled: false, period: 20 },
-    BB:   { enabled: false, period: 20 },
-    RSI:  { enabled: true,  period: 14 },
-    MACD: { enabled: false },
-    KDJ:  { enabled: false },
-    WR:   { enabled: false, period: 14 },
-    StochRSI: { enabled: false, period: 14 },
+    MA:   { 
+      enabled: false, 
+      lines: [
+        { period: 7, color: '#fcc201', enabled: true },
+        { period: 25, color: '#e83d8c', enabled: true },
+        { period: 99, color: '#9b7ef6', enabled: true },
+        { period: 0, color: '#f7525f', enabled: false },
+        { period: 0, color: '#2962ff', enabled: false },
+        { period: 0, color: '#ff6d00', enabled: false }
+      ]
+    },
+    EMA:  { 
+      enabled: false, 
+      lines: [
+        { period: 7, color: '#fcc201', enabled: true },
+        { period: 25, color: '#e83d8c', enabled: true },
+        { period: 99, color: '#9b7ef6', enabled: true },
+        { period: 0, color: '#f7525f', enabled: false },
+        { period: 0, color: '#2962ff', enabled: false },
+        { period: 0, color: '#ff6d00', enabled: false }
+      ]
+    },
+    BB:   { enabled: false, calcParams: [20, 2] },
+    RSI:  { enabled: true,  calcParams: [14] },
+    MACD: { enabled: false, calcParams: [12, 26, 9] },
+    KDJ:  { enabled: false, calcParams: [9, 3, 3] },
+    WR:   { enabled: false, calcParams: [14] },
+    StochRSI: { enabled: false, calcParams: [14, 14, 3, 3] },
   },
   activeTab:  'crypto',
   watchlist: {
@@ -43,7 +63,7 @@ const _listeners = new Map()
 // Persistence — tự động save/load vào localStorage
 // ---------------------------------------------------------------------------
 
-const PERSIST_KEYS = ['indicators', 'pinnedTimeframes', 'customIntervals']
+const PERSIST_KEYS = ['indicators', 'pinnedTimeframes', 'customIntervals', 'timeframe']
 const LS_PREFIX    = 'chartpro:'
 
 // Restore persisted state on module load
@@ -53,8 +73,14 @@ for (const key of PERSIST_KEYS) {
     if (saved != null) {
       const parsed = JSON.parse(saved)
       if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
-        // Merge objects (like indicators) so new defaults aren't lost
-        _state[key] = { ..._state[key], ...parsed }
+        // Merge objects (like indicators) deeply so new defaults aren't lost
+        for (const [k, v] of Object.entries(parsed)) {
+          if (typeof v === 'object' && v !== null && !Array.isArray(v) && _state[key][k]) {
+            _state[key][k] = { ..._state[key][k], ...v }
+          } else {
+            _state[key][k] = v
+          }
+        }
       } else {
         // Arrays or primitives
         _state[key] = parsed
@@ -68,6 +94,17 @@ for (const key of PERSIST_KEYS) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Force save all persistable state to localStorage manually
+ */
+export function forceSave() {
+  for (const key of PERSIST_KEYS) {
+    try {
+      localStorage.setItem(LS_PREFIX + key, JSON.stringify(_state[key]))
+    } catch (_) {}
+  }
+}
+
+/**
  * Read a value from the store.
  * @param {string} key
  * @returns {*}
@@ -78,19 +115,12 @@ export function get(key) {
 
 /**
  * Write a value into the store and emit a `state:<key>` event.
- * Automatically persists whitelisted keys to localStorage.
  * @param {string} key
  * @param {*} value
  */
 export function set(key, value) {
   _state[key] = value
   emit(`state:${key}`, value)
-  // Persist nếu key nằm trong danh sách
-  if (PERSIST_KEYS.includes(key)) {
-    try {
-      localStorage.setItem(LS_PREFIX + key, JSON.stringify(value))
-    } catch (_) {}
-  }
 }
 
 /**
