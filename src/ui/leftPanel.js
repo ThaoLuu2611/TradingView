@@ -129,9 +129,13 @@ export class LeftPanel {
       this._btnTrendline.addEventListener('click', (e) => {
         e.stopPropagation()
         document.getElementById('fibMenu')?.classList.remove('open')
-        this._setToolActive(this._btnTrendline)
         const selected = document.querySelector('#trendMenu .lp-sub-item.selected')
-        if (selected) emit(EVENTS.DRAWING_TOOL, selected.dataset.subtool)
+        if (selected) {
+          this._setToolActive(this._btnTrendline)
+          emit(EVENTS.DRAWING_TOOL, selected.dataset.subtool)
+        } else {
+          this.trendSub.toggle()
+        }
       })
     }
 
@@ -148,9 +152,13 @@ export class LeftPanel {
       this._btnFib.addEventListener('click', (e) => {
         e.stopPropagation()
         document.getElementById('trendMenu')?.classList.remove('open')
-        this._setToolActive(this._btnFib)
         const selected = document.querySelector('#fibMenu .lp-sub-item.selected')
-        if (selected) emit(EVENTS.DRAWING_TOOL, selected.dataset.subtool)
+        if (selected) {
+          this._setToolActive(this._btnFib)
+          emit(EVENTS.DRAWING_TOOL, selected.dataset.subtool)
+        } else {
+          this.fibSub.toggle()
+        }
       })
     }
 

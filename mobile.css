@@ -101,7 +101,8 @@
     background: #e3f2fd;
   }
   .lp-arrow {
-    bottom: 6px;
+    bottom: auto;
+    top: 6px;
     right: 6px;
   }
   
