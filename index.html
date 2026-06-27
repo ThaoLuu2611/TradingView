@@ -35,9 +35,6 @@
     <div style="width:1px;height:20px;background:#e0e3eb"></div>
     <div class="navbar-symbol">
       <span class="sym-name" id="sym-name">BTCUSDT</span>
-      <button class="sym-icon-btn" id="btn-sym-type" title="Symbol type">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 9l10 13L22 9z"/></svg>
-      </button>
       <button class="sym-icon-btn" id="btn-compare" title="Compare symbols">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
@@ -93,12 +90,18 @@
 
     <!-- LEFT PANEL -->
     <div id="left-panel" class="left-panel" style="position:relative">
-      <button class="lp-btn active" id="btn-trendline" title="Trendline">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="19" cy="5" r="2" fill="currentColor" stroke="none"/><line x1="6.4" y1="17.6" x2="17.6" y2="6.4"/></svg>
-      </button>
-      <button class="lp-btn" id="btn-fib" title="Fibonacci">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="5" x2="21" y2="5"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="13" x2="21" y2="13"/><line x1="3" y1="17" x2="21" y2="17"/><circle cx="3" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="13" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="17" r="1.5" fill="currentColor" stroke="none"/></svg>
-      </button>
+      <div class="lp-tool-group">
+        <button class="lp-btn" id="btn-trendline" title="Trendline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="19" cy="5" r="2" fill="currentColor" stroke="none"/><line x1="6.4" y1="17.6" x2="17.6" y2="6.4"/></svg>
+        </button>
+        <div class="lp-arrow" id="btn-trendline-arrow"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="0,0 24,0 12,12"/></svg></div>
+      </div>
+      <div class="lp-tool-group">
+        <button class="lp-btn" id="btn-fib" title="Fibonacci">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="5" x2="21" y2="5"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="13" x2="21" y2="13"/><line x1="3" y1="17" x2="21" y2="17"/><circle cx="3" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="13" r="1.5" fill="currentColor" stroke="none"/><circle cx="3" cy="17" r="1.5" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <div class="lp-arrow" id="btn-fib-arrow"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="0,0 24,0 12,12"/></svg></div>
+      </div>
       <div class="lp-spacer"></div>
       <button class="lp-btn" id="btn-clear" title="Clear drawings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
@@ -134,11 +137,11 @@
       <div id="chart-container">
         <div class="ohlcv-legend" id="ohlcv-legend"></div>
       </div>
-      <div id="sub-chart"></div>
     </div>
 
     <!-- RIGHT PANEL -->
     <div id="right-panel" class="right-panel">
+      <div class="rp-resizer" id="rp-resizer"></div>
       <div class="wl-header">
         <span class="wl-title">Watchlist</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#787b86" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>

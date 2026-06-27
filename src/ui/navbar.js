@@ -13,8 +13,8 @@ export class Navbar {
     /** @type {HTMLElement} */ this._symPrice   = null
     /** @type {HTMLElement} */ this._symChange  = null
     /** @type {HTMLElement} */ this._spinner    = null
-    /** @type {HTMLElement} */ this._toast      = null
-
+    this._toast      = null
+    this._latestPrices = {}
     this._toastTimer = null
   }
 
@@ -53,10 +53,27 @@ export class Navbar {
   _subscribe() {
     on(EVENTS.SYMBOL_CHANGE, (symbol) => {
       if (this._symName)  this._symName.textContent  = symbol
-      if (this._symPrice) this._symPrice.textContent = '—'
+      
+      const entry = this._latestPrices[symbol]
+      if (entry) {
+        if (this._symPrice) this._symPrice.textContent = formatPrice(entry.price)
+        if (this._symChange) {
+            this._symChange.textContent = formatPercent(entry.change)
+            this._symChange.classList.remove('up', 'dn')
+            this._symChange.classList.add(entry.change >= 0 ? 'up' : 'dn')
+        }
+      } else {
+        if (this._symPrice) this._symPrice.textContent = '—'
+        if (this._symChange) {
+            this._symChange.textContent = ''
+            this._symChange.classList.remove('up', 'dn')
+        }
+      }
     })
 
     on(EVENTS.PRICES_UPDATE, (data) => {
+      if (data) Object.assign(this._latestPrices, data)
+      
       const symbol = get('symbol')
       if (!data || !symbol) return
 

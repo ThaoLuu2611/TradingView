@@ -51,6 +51,9 @@ class KLineChartWrapper {
 
     // KLineChart v9: use setStyles() instead of setStyleOptions()
     this._chart.setStyles({
+      crosshair: {
+        mode: 'normal'
+      },
       grid: {
         show: true,
         horizontal: { color: '#f0f3fa', size: 1, style: 'solid', dashedValue: [2,2] },

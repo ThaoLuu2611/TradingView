@@ -95,7 +95,7 @@ function aggregateKlines(data, targetSec, baseSec) {
  * @param {string} interval - app format e.g. '1m', '1h', '1D', hoặc custom '7m'
  * @param {number} limit - number of candles to fetch (default 500)
  */
-export async function fetchOHLCV(symbol, interval, limit = 500) {
+export async function fetchOHLCV(symbol, interval, limit = 3500) {
   // Ưu tiên map tĩnh, fallback về interval gần nhất cho custom intervals
   const binanceInterval = INTERVAL_MAP[interval] ?? nearestBinanceInterval(interval)
   if (!binanceInterval) {
@@ -113,31 +113,54 @@ export async function fetchOHLCV(symbol, interval, limit = 500) {
     targetSec = parseInt(mApp[1]) * (UNIT_SEC_BI[mApp[2]] ?? 1)
     baseSec = parseInt(mBin[1]) * (UNIT_SEC_BI[mBin[2]] ?? 1)
     if (targetSec > baseSec) {
-      fetchLimit = Math.min(1000, limit * Math.ceil(targetSec / baseSec))
+      // Need more base candles to form the target candles
+      fetchLimit = limit * Math.ceil(targetSec / baseSec)
     }
   }
 
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${binanceInterval}&limit=${fetchLimit}`;
-  const response = await fetch(url);
+  let allKlines = []
+  let currentEndTime = undefined
 
-  if (!response.ok) {
-    throw new Error(`Binance API error: ${response.status} ${response.statusText}`);
+  // Binance limit per request is 1000
+  while (allKlines.length < fetchLimit) {
+    const chunkLimit = Math.min(1000, fetchLimit - allKlines.length)
+    let url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${binanceInterval}&limit=${chunkLimit}`
+    if (currentEndTime) {
+      url += `&endTime=${currentEndTime}`
+    }
+
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Binance API error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    if (data.length === 0) break
+
+    const klines = data.map(([openTime, open, high, low, close, volume]) => ({
+      timestamp: openTime,
+      open: +open,
+      high: +high,
+      low: +low,
+      close: +close,
+      volume: +volume,
+    }))
+
+    // Prepend the new chunk (oldest data first)
+    allKlines = klines.concat(allKlines)
+
+    // Oldest candle's time - 1ms
+    currentEndTime = data[0][0] - 1
+
+    if (data.length < chunkLimit) {
+      // Reached the beginning of available market data
+      break
+    }
   }
-
-  const data = await response.json();
-
-  const klines = data.map(([openTime, open, high, low, close, volume]) => ({
-    timestamp: openTime,
-    open: +open,
-    high: +high,
-    low: +low,
-    close: +close,
-    volume: +volume,
-  }));
 
   if (targetSec > baseSec) {
-    return aggregateKlines(klines, targetSec, baseSec)
+    return aggregateKlines(allKlines, targetSec, baseSec)
   }
 
-  return klines;
+  return allKlines
 }

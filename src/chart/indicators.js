@@ -90,7 +90,7 @@ class IndicatorManager {
         this._chart.createIndicator(value, false, { id: 'candle_pane' })
       } else {
         // New sub-chart pane; returns paneId
-        const paneId = this._chart.createIndicator(value, false)
+        const paneId = this._chart.createIndicator(value, false, { height: 100 })
         if (paneId) this._paneIds.set(name, paneId)
       }
     } catch (e) {

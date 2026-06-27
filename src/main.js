@@ -41,4 +41,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Data feeds sau cùng
   startCryptoPriceFeed()   // CoinGecko, mỗi 30s
   startStockPriceFeed()    // Yahoo Finance, mỗi 60s
+
+  // 4. Panel Resizer
+  const resizer = document.getElementById('rp-resizer')
+  const rightPanel = document.getElementById('right-panel')
+  if (resizer && rightPanel) {
+    let isResizing = false
+    let startX = 0
+    let startWidth = 0
+
+    resizer.addEventListener('mousedown', (e) => {
+      isResizing = true
+      startX = e.clientX
+      startWidth = parseInt(document.defaultView.getComputedStyle(rightPanel).width, 10)
+      document.body.style.cursor = 'col-resize'
+    })
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return
+      const diff = startX - e.clientX
+      let newWidth = startWidth + diff
+      if (newWidth < 150) newWidth = 150
+      if (newWidth > 500) newWidth = 500
+      rightPanel.style.width = newWidth + 'px'
+      // KLineChart needs to resize
+      chartWrapper.resize()
+    })
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false
+        document.body.style.cursor = ''
+      }
+    })
+  }
 })

@@ -101,7 +101,13 @@ class DrawingManager {
     // Set delete action
     btn.onclick = (e) => {
       e.stopPropagation()
-      if (this._chart) this._chart.removeOverlay(overlayId)
+      if (this._chart) {
+        this._chart.removeOverlay(overlayId)
+        // Clean up history to prevent ghost undos
+        if (this._history) {
+          this._history = this._history.filter(id => id !== overlayId)
+        }
+      }
       btn.style.display = 'none'
     }
     

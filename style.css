@@ -66,10 +66,14 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 .candle-check{color:#2962ff;font-size:13px}
 
 /* ── LEFT PANEL ── */
-.left-panel{width:45px;background:#f0f3fa;border-right:1px solid #e0e3eb;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:4px;flex-shrink:0}
+.left-panel{width:45px;background:#fff;border-right:1px solid #e0e3eb;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:4px;flex-shrink:0}
+.lp-tool-group{position:relative;width:100%;display:flex;justify-content:center}
 .lp-btn{width:33px;height:33px;border:none;background:none;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#787b86;transition:.15s}
-.lp-btn:hover{background:#e0e3eb;color:#131722}
-.lp-btn.active{background:#2962ff;color:#fff}
+.lp-btn:hover{background:#f0f3fa;color:#131722}
+.lp-btn.active{background:#f0f6ff;color:#2962ff}
+.lp-arrow{position:absolute;right:6px;bottom:2px;cursor:pointer;color:#787b86;display:flex;align-items:center;justify-content:center;padding:2px}
+.lp-arrow svg{width:6px;height:6px}
+.lp-arrow:hover{color:#131722}
 .lp-spacer{flex:1}
 .lp-btn svg{width:18px;height:18px}
 
@@ -85,12 +89,11 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 .o-val{color:#131722}.h-val{color:#26a69a}.l-val{color:#ef5350}.c-val{color:#131722}
 
 /* ── RSI / SUB-CHART PANEL ── */
-.rsi-panel{height:120px;background:#fff;border-top:1px solid #e0e3eb;position:relative;flex-shrink:0}
-.rsi-label{position:absolute;top:6px;left:10px;font-size:11px;color:#787b86;font-family:'JetBrains Mono',monospace}
-.rsi-label b{color:#9c27b0}
 
 /* ── RIGHT PANEL ── */
-.right-panel{width:200px;background:#f0f3fa;border-left:1px solid #e0e3eb;display:flex;flex-direction:column;flex-shrink:0}
+.right-panel{width:200px;background:#fff;border-left:1px solid #e0e3eb;display:flex;flex-direction:column;flex-shrink:0;position:relative}
+.rp-resizer{position:absolute;top:0;left:-3px;width:6px;height:100%;cursor:col-resize;z-index:50}
+.rp-resizer:hover{background:rgba(41,98,255,0.1)}
 .wl-header{padding:8px 12px 0;display:flex;align-items:center;justify-content:space-between}
 .wl-title{font-weight:600;font-size:13px}
 .wl-tabs{display:flex;gap:0;padding:0 12px;border-bottom:1px solid #e0e3eb;margin-top:6px}

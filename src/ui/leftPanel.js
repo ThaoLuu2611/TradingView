@@ -121,18 +121,42 @@ export class LeftPanel {
   }
 
   _bindEvents() {
-    // Trendline button
+    this._btnTrendlineArrow = document.getElementById('btn-trendline-arrow')
+    this._btnFibArrow       = document.getElementById('btn-fib-arrow')
+
+    // Trendline main button (activate default)
     if (this._btnTrendline) {
-      this._btnTrendline.addEventListener('click', () => {
+      this._btnTrendline.addEventListener('click', (e) => {
+        // Prevent opening submenu if clicked directly on icon
+        e.stopPropagation()
         this._setToolActive(this._btnTrendline)
+        const selected = document.querySelector('#trendMenu .lp-sub-item.selected')
+        if (selected) emit(EVENTS.DRAWING_TOOL, selected.dataset.subtool)
+      })
+    }
+
+    // Trendline arrow (open submenu)
+    if (this._btnTrendlineArrow) {
+      this._btnTrendlineArrow.addEventListener('click', (e) => {
+        e.stopPropagation()
         this.trendSub.toggle()
       })
     }
 
-    // Fib button
+    // Fib main button (activate default)
     if (this._btnFib) {
-      this._btnFib.addEventListener('click', () => {
+      this._btnFib.addEventListener('click', (e) => {
+        e.stopPropagation()
         this._setToolActive(this._btnFib)
+        const selected = document.querySelector('#fibMenu .lp-sub-item.selected')
+        if (selected) emit(EVENTS.DRAWING_TOOL, selected.dataset.subtool)
+      })
+    }
+
+    // Fib arrow (open submenu)
+    if (this._btnFibArrow) {
+      this._btnFibArrow.addEventListener('click', (e) => {
+        e.stopPropagation()
         this.fibSub.toggle()
       })
     }
