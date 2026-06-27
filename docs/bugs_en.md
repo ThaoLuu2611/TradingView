@@ -26,6 +26,8 @@ List of unresolved bugs, what has been tried, and next steps.
 
 **Cause:** KLineCharts v9 enables Auto Scale on the Y-axis by default, which locks vertical movement. The user must manually drag the price axis once to "unlock" it. No public API was found to disable this lock without requiring user interaction.
 
+**Note (27/06/2026):** The old workaround (dispose + init on symbol change) was removed to fix Bug 3. Bug 2 now only occurs on the very first app load, and no longer triggers when switching symbols.
+
 **Already tried (all unsuccessful):**
 1. Simulating `mousedown/mousemove/mouseup` events on the Y-axis — the library ignores synthetic events
 2. `setStyles({ yAxis: { autoScale: false } })` — disables the lock but the Y-axis then gets stuck at the old price range, causing a blank chart when switching symbols
@@ -36,14 +38,3 @@ List of unresolved bugs, what has been tried, and next steps.
 1. Read the KLineCharts v9 source code to find a way to reset `autoCalcTickFlag` without recreating the instance
 2. Or patch the library if necessary
 
----
-
-## Bug 3 — Chart flickers/jumps when switching symbols
-
-**Description:** When clicking a different symbol in the watchlist, the chart briefly flashes white then reloads the new data. It feels jarring and not smooth like TradingView.
-
-**Cause:** The current workaround for Bug 2 is to `dispose()` then `init()` the entire chart instance when switching symbols. This causes a brief white flash while the chart is destroyed and recreated.
-
-**Next steps:**
-1. Fix Bug 2 (reset Y-axis without recreating the chart instance) → Bug 3 goes away automatically
-2. Or if recreating is still needed: use an overlay/skeleton to hide the white flash during recreate

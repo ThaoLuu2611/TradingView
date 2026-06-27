@@ -251,19 +251,6 @@ class KLineChartWrapper {
         data = await fetchStockOHLCV(symbol, timeframe)
       }
 
-      // When changing symbol, recreate the chart to reset Y-axis auto-scale
-      if (this._lastSymbol && this._lastSymbol !== symbol) {
-        const el = document.getElementById('chart-container')
-        if (el) {
-          window.klinecharts.dispose(el)
-          this._chart = window.klinecharts.init(el)
-          this._applyStyles()
-          this.setChartType(get('chartType') || 'candle')
-          emit(EVENTS.CHART_RECREATED, this._chart)
-        }
-      }
-      this._lastSymbol = symbol
-
       this._chart.applyNewData(data)
       emit(EVENTS.CHART_READY, true)
 
