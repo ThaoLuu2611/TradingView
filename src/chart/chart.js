@@ -74,13 +74,13 @@ class KLineChartWrapper {
       return
     }
 
-    // v10: init() accepts an options object as second argument
-    this._chart = window.klinecharts.init(el)
+    // v10: pass styles directly into init() so they apply before the first render frame
+    this._chart = window.klinecharts.init(el, { styles: this._buildStyles() })
 
-    this._applyStyles()
+    // Force resize so the canvas gets correct dimensions from the flex layout
+    this._chart.resize()
 
-    // v10: register data loader — chart calls getBars when it needs data.
-    // subscribeBar/unsubscribeBar handle real-time tick updates.
+    // v10: register data loader — chart calls getBars({ type: 'init' }) when ready
     this._chart.setDataLoader({
       getBars: async ({ type, timestamp, symbol, period, callback }) => {
         if (type === 'init') emit(EVENTS.LOADING, true)
@@ -114,9 +114,10 @@ class KLineChartWrapper {
       },
     })
 
-    // Trigger initial load — v10 calls getBars({ type: 'init' }) automatically
-    this._chart.setSymbol({ ticker: this._symbol })
+    // Set period FIRST (no getBars yet since symbol is null)
+    // then symbol — v10 triggers getBars only when both are set
     this._chart.setPeriod(this._timeframeToPeriod(this._timeframe))
+    this._chart.setSymbol({ ticker: this._symbol })
 
     // Wire up store events
     on(EVENTS.SYMBOL_CHANGE, (symbol) => {
@@ -302,10 +303,9 @@ class KLineChartWrapper {
     return TIMEFRAME_TO_PERIOD[tf] ?? { type: 'day', span: 1 }
   }
 
-  /** Apply default chart styles (v10 compatible) */
-  _applyStyles() {
-    if (!this._chart) return
-    this._chart.setStyles({
+  /** Build styles object — also used in init() options for first-frame correctness */
+  _buildStyles() {
+    return {
       yAxis: {
         tickText: { color: '#434651', size: 13, weight: 'normal' }
       },
@@ -373,7 +373,7 @@ class KLineChartWrapper {
           ],
         },
       },
-    })
+    }
   }
 
   /** Public getter so indicatorManager/drawingManager can access the chart instance */

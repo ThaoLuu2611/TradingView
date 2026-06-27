@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <script src="https://cdn.jsdelivr.net/npm/klinecharts@10.0.0-beta3/dist/umd/klinecharts.min.js"></script>
+  <style>
+    body { margin: 0; background: #fff; }
+    #c { width: 100vw; height: 100vh; }
+    #log { position: fixed; top: 0; left: 0; background: rgba(0,0,0,0.8); color: lime;
+           font: 12px monospace; padding: 8px; max-height: 40vh; overflow: auto; z-index: 999; width: 100%; }
+  </style>
+</head>
+<body>
+<div id="log"></div>
+<div id="c"></div>
+<script>
+const log = (msg, color) => {
+  const el = document.getElementById('log')
+  const d = document.createElement('div')
+  d.style.color = color || 'lime'
+  d.textContent = msg
+  el.appendChild(d)
+}
+
+try {
+  log('klinecharts version: ' + klinecharts.version())
+  log('init type: ' + typeof klinecharts.init)
+
+  const chart = klinecharts.init('c')
+  log('chart type: ' + typeof chart)
+  log('setDataLoader: ' + typeof chart.setDataLoader)
+  log('setSymbol: ' + typeof chart.setSymbol)
+  log('setPeriod: ' + typeof chart.setPeriod)
+  log('createIndicator: ' + typeof chart.createIndicator)
+
+  // Fake static data
+  const now = Date.now()
+  const fakeData = []
+  let price = 50000
+  for (let i = 0; i < 100; i++) {
+    const open = price + (Math.random() - 0.5) * 500
+    const close = open + (Math.random() - 0.5) * 500
+    fakeData.push({
+      timestamp: now - (100 - i) * 86400000,
+      open, high: Math.max(open, close) + 200, low: Math.min(open, close) - 200, close,
+      volume: Math.random() * 1000
+    })
+    price = close
+  }
+  fakeData.sort((a, b) => a.timestamp - b.timestamp)
+  log('fake data length: ' + fakeData.length)
+
+  chart.setDataLoader({
+    getBars: ({ type, symbol, period, callback }) => {
+      log('getBars called: type=' + type + ' sym=' + symbol?.ticker + ' period=' + JSON.stringify(period))
+      callback(fakeData, false)
+    }
+  })
+
+  chart.setSymbol({ ticker: 'TEST' })
+  chart.setPeriod({ type: 'day', span: 1 })
+
+  log('ALL OK ✓', '#0f0')
+} catch(e) {
+  log('ERROR: ' + e.message, 'red')
+  log(e.stack, 'orange')
+}
+</script>
+</body>
+</html>
