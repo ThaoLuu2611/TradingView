@@ -12,6 +12,7 @@ import { Watchlist }       from './ui/watchlist.js'
 import { IndicatorModal }  from './ui/indicatorModal.js'
 import { SearchBar }       from './ui/searchBar.js'
 import { CompareModal }    from './ui/compareModal.js'
+import { initMobileUI }    from './ui/mobile.js'
 
 import { startCryptoPriceFeed } from './api/coingecko.js'
 import { startStockPriceFeed }  from './api/yahoo.js'
@@ -42,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
   indModal.init()
   searchBar.init()
   compareModal.init()
+
+  initMobileUI()
 
   // 3. Data feeds sau cùng
   startCryptoPriceFeed()   // CoinGecko, mỗi 30s

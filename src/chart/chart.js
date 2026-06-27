@@ -52,12 +52,30 @@ class KLineChartWrapper {
     // KLineChart v9: use setStyles() instead of setStyleOptions()
     this._chart.setStyles({
       crosshair: {
-        mode: 'normal'
+        mode: 'normal',
+        horizontal: {
+          line: { style: 'solid', color: '#787b86', size: 1 }
+        },
+        vertical: {
+          line: { style: 'solid', color: '#787b86', size: 1 }
+        }
       },
       grid: {
         show: true,
         horizontal: { color: '#f0f3fa', size: 1, style: 'solid', dashedValue: [2,2] },
         vertical:   { color: '#f0f3fa', size: 1, style: 'solid', dashedValue: [2,2] },
+      },
+      overlay: {
+        point: {
+          color: '#ffffff',
+          borderColor: '#2962ff',
+          borderSize: 1,
+          radius: 4,
+          activeColor: '#ffffff',
+          activeBorderColor: '#2962ff',
+          activeBorderSize: 2,
+          activeRadius: 5,
+        }
       },
       candle: {
         type: 'candle_solid',
@@ -100,6 +118,16 @@ class KLineChartWrapper {
 
     // Initial data load
     this.loadData(this._symbol, this._timeframe)
+
+    // Handle Keyboard Delete/Backspace
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        if (this._chart && this._selectedOverlayId) {
+          this._chart.removeOverlay(this._selectedOverlayId)
+          this._selectedOverlayId = null
+        }
+      }
+    })
   }
 
   /**
@@ -152,6 +180,43 @@ class KLineChartWrapper {
   // -------------------------------------------------------------------------
   // Private helpers
   // -------------------------------------------------------------------------
+
+  _bindEvents() {
+    on(EVENTS.DRAWING_TOOL, (subtool) => {
+      if (!this._chart) return
+      this._chart.createOverlay({
+        name: subtool,
+        onSelected: ({ overlay }) => {
+          this._selectedOverlayId = overlay.id
+          return true
+        },
+        onDeselected: ({ overlay }) => {
+          if (this._selectedOverlayId === overlay.id) {
+            this._selectedOverlayId = null
+          }
+          return true
+        },
+        onRightClick: ({ overlay }) => {
+          this._chart.removeOverlay(overlay.id)
+          if (this._selectedOverlayId === overlay.id) {
+            this._selectedOverlayId = null
+          }
+          return true
+        }
+      })
+    })
+
+    on(EVENTS.DRAWING_CLEAR, () => {
+      if (this._chart) {
+        if (this._selectedOverlayId) {
+          this._chart.removeOverlay(this._selectedOverlayId)
+          this._selectedOverlayId = null
+        } else {
+          this._chart.removeOverlay()
+        }
+      }
+    })
+  }
 
   /**
    * Determine whether a symbol is a crypto pair.

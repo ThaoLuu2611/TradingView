@@ -395,3 +395,15 @@ document.addEventListener('DOMContentLoaded', () => {
 | Thêm indicator | Thêm vào `indicators.js` + row trong `indicatorPanel.js` |
 | Panel resize | Thêm `src/ui/layout.js` quản lý drag resize |
 | Persist settings | `localStorage` trong store.js (pinnedTimeframes, indicators) |
+
+## Mobile Support (Responsive UI)
+
+Mô hình thiết kế giao diện di động được chia thành 2 file chính để không ảnh hưởng đến logic desktop:
+- **`mobile.css`**: Nạp *sau cùng* trong `index.html` để override (ghi đè) các style tĩnh (flex-direction, positions, z-index).
+- **`mobile.js`**: Hook vào resize sự kiện để quyết định đóng/mở panel qua class `.open` thay vì đổi style inline.
+
+**Cách hoạt động của Mobile UI:**
+1. **Watchlist Panel:** Chuyển thành Side Drawer trượt từ bên phải sang (width: 60%). 
+2. **Drawing Toolbar:** Chuyển thành Bottom Sheet (nằm dưới đáy, flex-direction: row, wrap). Nút "Drawing" được thiết kế dạng Floating Action Button (FAB) góc dưới phải. Khi FAB click, bottom sheet trồi lên. Các submenu của Drawing Toolbar được ép bung ngược lên trên thay vì bung ngang để tránh lọt khỏi màn hình.
+3. **Crosshair & Overlay points:** Được thiết kế tối ưu chạm (touch), các nút mỏ neo (anchor points) khi vẽ nét đứt/liền được set styles nét, nhỏ gọn trắng-xanh chuẩn UI gốc.
+4. **Delete Drawings:** Do mobile không có phím Delete/Backspace, logic xoá được tích hợp vào icon Thùng Rác: Nếu 1 nét vẽ (overlay) đang được chọn (active), ấn thùng rác sẽ chỉ xoá nét đó; nếu không chọn nét nào, ấn thùng rác sẽ xoá toàn bộ biểu đồ.
