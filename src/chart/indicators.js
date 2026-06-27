@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// indicators.js – Technical indicator manager (KLineChart v9 API)
+// indicators.js – Technical indicator manager (KLineChart v10 API)
 // ---------------------------------------------------------------------------
 
 import { on, get, set } from '../store/store.js'
@@ -146,8 +146,8 @@ class IndicatorManager {
       const paneId = isOverlay ? 'candle_pane' : this._paneIds.get(name)
       if (this._chart) {
         try {
-          this._chart.removeIndicator(paneId, klineName)
-          this._chart.createIndicator(value, isOverlay, { id: paneId })
+          this._chart.removeIndicator({ paneId, name: klineName })
+          this._chart.createIndicator(value, { isStack: isOverlay, pane: { id: paneId } })
           
           // Re-apply heights to all sub-panes to prevent KLineChart from resetting the layout and cutting off indicators
           for (const subPaneId of this._paneIds.values()) {
@@ -163,11 +163,11 @@ class IndicatorManager {
     try {
       if (isOverlay) {
         // Overlay on main candle pane - stack true so it shares the Y-axis properly
-        this._chart.createIndicator(value, true, { id: 'candle_pane' })
+        this._chart.createIndicator(value, { isStack: true, pane: { id: 'candle_pane' } })
         this._overlaysAdded.add(name)
       } else {
         // New sub-chart pane; create without height then setPaneOptions to force layout adjustment
-        const paneId = this._chart.createIndicator(value, false)
+        const paneId = this._chart.createIndicator(value, { isStack: false })
         if (paneId) {
           this._paneIds.set(name, paneId)
           try {
@@ -198,12 +198,12 @@ class IndicatorManager {
 
     try {
       if (OVERLAY_INDICATORS.has(name)) {
-        this._chart.removeIndicator('candle_pane', klineName)
+        this._chart.removeIndicator({ paneId: 'candle_pane', name: klineName })
         this._overlaysAdded.delete(name)
       } else {
         const paneId = this._paneIds.get(name)
         if (paneId != null) {
-          this._chart.removeIndicator(paneId, klineName)
+          this._chart.removeIndicator({ paneId, name: klineName })
           this._paneIds.delete(name)
           this._paneControlManager?.remove(paneId)
         }

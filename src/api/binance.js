@@ -95,7 +95,7 @@ function aggregateKlines(data, targetSec, baseSec) {
  * @param {string} interval - app format e.g. '1m', '1h', '1D', hoặc custom '7m'
  * @param {number} limit - number of candles to fetch (default 500)
  */
-export async function fetchOHLCV(symbol, interval, limit = 3500) {
+export async function fetchOHLCV(symbol, interval, limit = 3500, endTimestamp = undefined) {
   // Ưu tiên map tĩnh, fallback về interval gần nhất cho custom intervals
   const binanceInterval = INTERVAL_MAP[interval] ?? nearestBinanceInterval(interval)
   if (!binanceInterval) {
@@ -119,7 +119,7 @@ export async function fetchOHLCV(symbol, interval, limit = 3500) {
   }
 
   let allKlines = []
-  let currentEndTime = undefined
+  let currentEndTime = endTimestamp  // undefined = fetch latest; timestamp = fetch before that point
 
   // Binance limit per request is 1000
   while (allKlines.length < fetchLimit) {

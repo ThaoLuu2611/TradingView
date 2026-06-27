@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-// chart.js – KLineChart wrapper for the TradingView-clone app
+// chart.js – KLineChart wrapper (v10)
 // ---------------------------------------------------------------------------
 
 // KLineChart is loaded via CDN <script> tag — available as window.klinecharts
-import { on, emit, get } from '../store/store.js'
+import { on, emit, get, set } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 import { fetchOHLCV } from '../api/binance.js'
 import { fetchStockOHLCV } from '../api/yahoo.js'
@@ -17,12 +17,36 @@ const STOCK_SYMBOLS = new Set([
 /** Crypto quote currencies that suffix a symbol (e.g. BTCUSDT, ETHBTC). */
 const CRYPTO_SUFFIXES = ['USDT', 'BTC', 'ETH', 'BNB', 'BUSD', 'USDC', 'DAI', 'TUSD']
 
+/**
+ * Map app timeframe strings → KLineChart v10 Period objects.
+ * v10 requires { type: PeriodType, span: number }.
+ */
+const TIMEFRAME_TO_PERIOD = {
+  '1m':  { type: 'minute', span: 1 },
+  '3m':  { type: 'minute', span: 3 },
+  '5m':  { type: 'minute', span: 5 },
+  '10m': { type: 'minute', span: 10 },
+  '15m': { type: 'minute', span: 15 },
+  '30m': { type: 'minute', span: 30 },
+  '45m': { type: 'minute', span: 45 },
+  '1h':  { type: 'hour', span: 1 },
+  '2h':  { type: 'hour', span: 2 },
+  '3h':  { type: 'hour', span: 3 },
+  '4h':  { type: 'hour', span: 4 },
+  '6h':  { type: 'hour', span: 6 },
+  '12h': { type: 'hour', span: 12 },
+  '1D':  { type: 'day', span: 1 },
+  '3D':  { type: 'day', span: 3 },
+  '1W':  { type: 'week', span: 1 },
+  '1M':  { type: 'month', span: 1 },
+}
+
 class KLineChartWrapper {
   constructor() {
     /** @type {ReturnType<typeof klinecharts.init> | null} */
     this._chart = null
 
-    /** @type {string | null} */
+    /** @type {string} */
     this._candlePaneId = 'candle_pane'
 
     /** @type {string} */
@@ -30,6 +54,9 @@ class KLineChartWrapper {
 
     /** @type {string} */
     this._timeframe = get('timeframe') ?? '1D'
+
+    /** @type {string | null} */
+    this._selectedOverlayId = null
   }
 
   // -------------------------------------------------------------------------
@@ -47,99 +74,49 @@ class KLineChartWrapper {
       return
     }
 
+    // v10: init() accepts an options object as second argument
     this._chart = window.klinecharts.init(el)
 
-    // --- Mobile Y-Axis Drag & Pinch Fix ---
-    // Expand Y-axis touch hitbox and support both 1-finger drag and 2-finger pinch on the Y-axis.
-    const activePointers = new Map()
-    let fakeMouseY = 0
-    let lastDistance = null
-    let isFakingMouse = false
-
-    const dispatchFakePointer = (target, originalEvent, newType, y, buttons) => {
-      const init = {
-        bubbles: true, cancelable: true,
-        clientX: originalEvent.clientX, clientY: y,
-        screenX: originalEvent.screenX, screenY: y,
-        button: 0, buttons: buttons,
-        pointerId: 1, // use a fake pointer id
-        pointerType: 'mouse',
-        isPrimary: true
-      }
-      target.dispatchEvent(new PointerEvent(newType, init))
-      target.dispatchEvent(new MouseEvent(newType.replace('pointer', 'mouse'), init))
-    }
-
-    el.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
-        const rect = el.getBoundingClientRect()
-        // If touch is within 70px of the right edge
-        if (e.clientX - rect.left > rect.width - 70) {
-          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY, lastY: e.clientY })
-          e.stopPropagation()
-          e.preventDefault()
-
-          if (activePointers.size === 1) {
-            isFakingMouse = true
-            fakeMouseY = e.clientY
-            dispatchFakePointer(e.target, e, 'pointerdown', fakeMouseY, 1)
-          } else if (activePointers.size === 2) {
-            const pts = Array.from(activePointers.values())
-            lastDistance = Math.abs(pts[0].y - pts[1].y)
-          }
-        }
-      }
-    }, { capture: true })
-
-    el.addEventListener('pointermove', (e) => {
-      if (activePointers.has(e.pointerId)) {
-        const ptr = activePointers.get(e.pointerId)
-        const dy = e.clientY - ptr.lastY
-        ptr.x = e.clientX
-        ptr.y = e.clientY
-        ptr.lastY = e.clientY
-        
-        e.stopPropagation()
-        if (e.cancelable) e.preventDefault()
-
-        if (activePointers.size === 1) {
-          fakeMouseY += dy
-          dispatchFakePointer(e.target, e, 'pointermove', fakeMouseY, 1)
-        } else if (activePointers.size === 2) {
-          const pts = Array.from(activePointers.values())
-          const currentDistance = Math.abs(pts[0].y - pts[1].y)
-          if (lastDistance !== null) {
-            const diff = currentDistance - lastDistance
-            // Spread (+) -> fakeMouseY increases (simulating dragging price scale down -> zoom in)
-            // Pinch (-) -> fakeMouseY decreases (simulating dragging price scale up -> zoom out)
-            fakeMouseY += diff
-            dispatchFakePointer(e.target, e, 'pointermove', fakeMouseY, 1)
-          }
-          lastDistance = currentDistance
-        }
-      }
-    }, { capture: true, passive: false })
-
-    const endPointer = (e) => {
-      if (activePointers.has(e.pointerId)) {
-        activePointers.delete(e.pointerId)
-        e.stopPropagation()
-        
-        if (activePointers.size === 1) {
-          lastDistance = null
-        } else if (activePointers.size === 0 && isFakingMouse) {
-          isFakingMouse = false
-          lastDistance = null
-          const upType = e.type === 'pointercancel' ? 'pointercancel' : 'pointerup'
-          dispatchFakePointer(e.target, e, upType, fakeMouseY, 0)
-        }
-      }
-    }
-    el.addEventListener('pointerup', endPointer, { capture: true })
-    el.addEventListener('pointercancel', endPointer, { capture: true })
-    // ------------------------------
-
     this._applyStyles()
+
+    // v10: register data loader — chart calls getBars when it needs data.
+    // subscribeBar/unsubscribeBar handle real-time tick updates.
+    this._chart.setDataLoader({
+      getBars: async ({ type, timestamp, symbol, period, callback }) => {
+        if (type === 'init') emit(EVENTS.LOADING, true)
+        try {
+          const sym = symbol.ticker
+          let data
+
+          // backward = user scrolled left; timestamp = earliest candle loaded
+          const endTimestamp = (type === 'backward' && timestamp) ? timestamp - 1 : undefined
+
+          if (this._isCrypto(sym)) {
+            const limit = (type === 'backward') ? 500 : 3500
+            data = await fetchOHLCV(sym, this._timeframe, limit, endTimestamp)
+          } else {
+            data = await fetchStockOHLCV(sym, this._timeframe)
+          }
+
+          // more=true means there might be more historical data to load backward
+          const more = (type !== 'backward') ? true : data.length >= 500
+          callback(data, more)
+
+          if (type === 'init') {
+            emit(EVENTS.CHART_READY, true)
+            emit(EVENTS.LOADING, false)
+          }
+        } catch (err) {
+          console.error('[KLineChartWrapper] getBars error:', err)
+          callback([], false)
+          if (type === 'init') emit(EVENTS.LOADING, false)
+        }
+      },
+    })
+
+    // Trigger initial load — v10 calls getBars({ type: 'init' }) automatically
+    this._chart.setSymbol({ ticker: this._symbol })
+    this._chart.setPeriod(this._timeframeToPeriod(this._timeframe))
 
     // Wire up store events
     on(EVENTS.SYMBOL_CHANGE, (symbol) => {
@@ -159,14 +136,12 @@ class KLineChartWrapper {
     // Resize on window resize
     window.addEventListener('resize', () => this.resize())
 
-    // Initial data load
-    this.loadData(this._symbol, this._timeframe)
-
     // Handle Keyboard Delete/Backspace
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Backspace' || e.key === 'Delete') {
         if (this._chart && this._selectedOverlayId) {
-          this._chart.removeOverlay(this._selectedOverlayId)
+          // v10: removeOverlay takes a filter object
+          this._chart.removeOverlay({ id: this._selectedOverlayId })
           this._selectedOverlayId = null
         }
       }
@@ -176,90 +151,74 @@ class KLineChartWrapper {
     const chartContainer = document.getElementById('chart-container')
     const ctxMenu = document.getElementById('chartContextMenu')
     const ctxAddWl = document.getElementById('ctx-add-wl')
-    
+
     if (chartContainer && ctxMenu && ctxAddWl) {
       chartContainer.addEventListener('contextmenu', (e) => {
         e.preventDefault()
         const symbol = get('symbol')
         const wl = get('watchlist')
         if (!symbol || !wl) return
-        
+
         const inCrypto = wl.crypto && wl.crypto.includes(symbol)
         const inStocks = wl.stocks && wl.stocks.includes(symbol)
         const isInWatchlist = inCrypto || inStocks
-        
+
         ctxAddWl.textContent = isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'
         ctxMenu.style.display = 'block'
-        
-        // Ensure menu doesn't go off-screen
+
         let x = e.clientX
         let y = e.clientY
         const menuRect = ctxMenu.getBoundingClientRect()
         if (x + menuRect.width > window.innerWidth) x = window.innerWidth - menuRect.width
         if (y + menuRect.height > window.innerHeight) y = window.innerHeight - menuRect.height
-        
+
         ctxMenu.style.left = x + 'px'
         ctxMenu.style.top = y + 'px'
       })
-      
+
       document.addEventListener('click', (e) => {
         if (e.target !== ctxAddWl) {
           ctxMenu.style.display = 'none'
         }
       })
-      
+
       ctxAddWl.addEventListener('click', () => {
         const symbol = get('symbol')
         const wl = get('watchlist')
         if (!symbol || !wl) return
-        
+
         const inCrypto = wl.crypto && wl.crypto.includes(symbol)
         const inStocks = wl.stocks && wl.stocks.includes(symbol)
         const isInWatchlist = inCrypto || inStocks
-        
+
         if (isInWatchlist) {
           if (inCrypto) wl.crypto = wl.crypto.filter(s => s !== symbol)
           if (inStocks) wl.stocks = wl.stocks.filter(s => s !== symbol)
-          // Clone the object slightly to force trigger the set setter if needed
           set('watchlist', { ...wl })
           import('../store/store.js').then(({ forceSave }) => forceSave())
         } else {
           emit(EVENTS.WATCHLIST_ADD, symbol)
         }
-        
+
         ctxMenu.style.display = 'none'
       })
     }
+
+    this._bindEvents()
   }
 
   /**
-   * Fetch OHLCV data and push it into the chart.
+   * Change symbol and/or timeframe — triggers a fresh data load via DataLoader.
    * @param {string} symbol
    * @param {string} timeframe
    */
-  async loadData(symbol, timeframe) {
+  loadData(symbol, timeframe) {
     if (!this._chart) return
-
-    emit(EVENTS.LOADING, true)
-
-    try {
-      let data
-
-      if (this._isCrypto(symbol)) {
-        data = await fetchOHLCV(symbol, timeframe)
-      } else {
-        data = await fetchStockOHLCV(symbol, timeframe)
-      }
-
-      this._chart.applyNewData(data)
-      emit(EVENTS.CHART_READY, true)
-
-    } catch (err) {
-      console.error('[KLineChartWrapper] loadData error:', err)
-      emit(EVENTS.ERROR, err.message ?? String(err))
-    } finally {
-      emit(EVENTS.LOADING, false)
-    }
+    this._symbol = symbol
+    this._timeframe = timeframe
+    // v10: setting symbol or period triggers getBars({ type: 'init' }) automatically
+    this._chart.setSymbol({ ticker: symbol })
+    this._chart.setPeriod(this._timeframeToPeriod(timeframe))
   }
 
   /**
@@ -268,7 +227,6 @@ class KLineChartWrapper {
    */
   setChartType(type) {
     if (!this._chart) return
-    // v9: setStyles()
     const candleType = type === 'candle' ? 'candle_solid' : 'area'
     this._chart.setStyles({ candle: { type: candleType } })
   }
@@ -300,7 +258,8 @@ class KLineChartWrapper {
           return true
         },
         onRightClick: ({ overlay }) => {
-          this._chart.removeOverlay(overlay.id)
+          // v10: removeOverlay takes a filter object
+          this._chart.removeOverlay({ id: overlay.id })
           if (this._selectedOverlayId === overlay.id) {
             this._selectedOverlayId = null
           }
@@ -312,7 +271,7 @@ class KLineChartWrapper {
     on(EVENTS.DRAWING_CLEAR, () => {
       if (this._chart) {
         if (this._selectedOverlayId) {
-          this._chart.removeOverlay(this._selectedOverlayId)
+          this._chart.removeOverlay({ id: this._selectedOverlayId })
           this._selectedOverlayId = null
         } else {
           this._chart.removeOverlay()
@@ -323,8 +282,6 @@ class KLineChartWrapper {
 
   /**
    * Determine whether a symbol is a crypto pair.
-   * Returns `true` when the symbol ends with a known crypto quote currency
-   * AND is not in the known stock list.
    * @param {string} symbol
    * @returns {boolean}
    */
@@ -336,25 +293,45 @@ class KLineChartWrapper {
     )
   }
 
-  /** Apply default chart styles */
+  /**
+   * Convert app timeframe string to KLineChart v10 Period object.
+   * @param {string} tf
+   * @returns {{ type: string, span: number }}
+   */
+  _timeframeToPeriod(tf) {
+    return TIMEFRAME_TO_PERIOD[tf] ?? { type: 'day', span: 1 }
+  }
+
+  /** Apply default chart styles (v10 compatible) */
   _applyStyles() {
     if (!this._chart) return
     this._chart.setStyles({
       yAxis: {
-        autoScale: true,
         tickText: { color: '#434651', size: 13, weight: 'normal' }
       },
       xAxis: {
         tickText: { color: '#434651', size: 13, weight: 'normal' }
       },
       crosshair: {
-        mode: 'normal',
-        horizontal: { text: { size: 13, color: '#ffffff', backgroundColor: '#131722' } },
-        vertical: { text: { size: 13, color: '#ffffff', backgroundColor: '#131722' } }
+        horizontal: {
+          text: { size: 13, color: '#ffffff', backgroundColor: '#131722' }
+        },
+        vertical: {
+          text: { size: 13, color: '#ffffff', backgroundColor: '#131722' }
+        }
       },
       indicator: {
         lastValueMark: { text: { size: 13, weight: 'normal' } },
-        tooltip: { text: { size: 14, color: '#434651', weight: 'normal' } }
+        tooltip: {
+          title: {
+            show: true,
+            color: '#434651',
+            size: 11,
+            showName: false,
+            showParams: false,
+          },
+          legend: { color: '#434651', size: 14, weight: 'normal' }
+        }
       },
       grid: {
         show: true,
@@ -376,7 +353,8 @@ class KLineChartWrapper {
       candle: {
         type: 'candle_solid',
         tooltip: {
-          text: { size: 14, color: '#434651', weight: 'normal' }
+          showRule: 'none',
+          legend: { color: '#434651', size: 14, weight: 'normal' }
         },
         bar: {
           upColor:         '#26a69a',

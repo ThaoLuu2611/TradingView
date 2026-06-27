@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chartWrapper._chart.createIndicator({
         name: 'CompareSymbol',
         calcParams: [data, symbol, '#fcc201']
-      }, isNewPane, { id: paneId })
+      }, { isStack: isNewPane, pane: { id: paneId } })
       
     } catch(err) {
       console.error('Compare fetch failed:', err)
