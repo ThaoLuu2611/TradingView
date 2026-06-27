@@ -3,7 +3,6 @@ const puppeteer = require('puppeteer');
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   
-  // Create a minimal HTML with KLineCharts loaded from CDN
   const html = `
     <!DOCTYPE html>
     <html>
@@ -15,8 +14,8 @@ const puppeteer = require('puppeteer');
       <script>
         const chart = klinecharts.init('chart');
         chart.applyNewData([
-          { timestamp: 1600000000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
-          { timestamp: 1600000060000, open: 11, high: 13, low: 10, close: 12, volume: 120 }
+          { timestamp: 1600000000000, open: 1000, high: 1200, low: 900, close: 1100, volume: 100 },
+          { timestamp: 1600000060000, open: 1100, high: 1300, low: 1000, close: 1200, volume: 120 }
         ]);
         window.myChart = chart;
       </script>
@@ -27,7 +26,20 @@ const puppeteer = require('puppeteer');
   
   const result = await page.evaluate(() => {
     const chart = window.myChart;
-    const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(chart));
+    // How to get autoCalc in V9 wrapper?
+    // It is deeply nested. Let's just try resetting.
+    
+    let methods = [];
+    try {
+      const store = chart.getChartStore();
+      methods = Object.getOwnPropertyNames(Object.getPrototypeOf(store));
+      
+      // Let's try store.getActionStore()?
+      const actionStore = store.getActionStore();
+      const actionMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(actionStore));
+      methods.push(...actionMethods.map(m => 'ActionStore.' + m));
+    } catch(e) {}
+    
     return { methods };
   });
   console.log(JSON.stringify(result, null, 2));

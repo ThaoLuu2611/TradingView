@@ -296,15 +296,17 @@ class KLineChartWrapper {
         data = await fetchStockOHLCV(symbol, timeframe)
       }
 
-      if (typeof this._chart.setSymbol === 'function') {
-        this._chart.setSymbol(symbol)
-      } else if (typeof this._chart.getChart === 'function') {
-        const chartImp = this._chart.getChart()
-        if (typeof chartImp.setSymbol === 'function') {
-          chartImp.setSymbol(symbol)
-        } else if (typeof chartImp._resetYAxisAutoCalcTickFlag === 'function') {
-          chartImp._resetYAxisAutoCalcTickFlag()
-        }
+      // Reset Y-axis auto scale by dispatching a dblclick event to the chart container
+      const container = document.getElementById('chart-container')
+      if (container) {
+        const rect = container.getBoundingClientRect()
+        const dblclick = new MouseEvent('dblclick', {
+          clientX: rect.left + rect.width / 2,
+          clientY: rect.top + rect.height / 2,
+          bubbles: true,
+          cancelable: true
+        })
+        container.dispatchEvent(dblclick)
       }
 
       this._chart.applyNewData(data)
