@@ -1,8 +1,8 @@
 // src/main.js — Entry point, khởi tạo theo đúng thứ tự
 
-import { chartWrapper }    from './chart/chart.js'
-import { indicatorManager } from './chart/indicators.js'
-import { drawingManager }   from './chart/drawings.js'
+import { chartWrapper }    from './chart/chart.js?v=2'
+import { indicatorManager } from './chart/indicators.js?v=2'
+import { drawingManager }   from './chart/drawings.js?v=2'
 import { paneControlManager } from './ui/paneControls.js'
 import { on } from './store/store.js'
 import { EVENTS } from './store/events.js'

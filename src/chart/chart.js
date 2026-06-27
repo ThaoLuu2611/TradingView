@@ -89,10 +89,12 @@ class KLineChartWrapper {
           let data
 
           if (type !== 'init' && type !== 'backward') {
+            console.log(`[DataLoader] Ignored type: ${type}`)
             callback([], false)
             return
           }
 
+          console.log(`[DataLoader] Triggered type: ${type}, timestamp: ${timestamp}`)
           // backward = user scrolled left; timestamp = earliest candle loaded
           const endTimestamp = (type === 'backward' && timestamp) ? timestamp - 1 : undefined
 
@@ -101,12 +103,13 @@ class KLineChartWrapper {
             data = await fetchOHLCV(sym, this._timeframe, limit, endTimestamp)
           } else {
             if (type === 'backward') {
-              // Yahoo API not paginated yet, return empty to prevent duplicate blocks
               data = []
             } else {
               data = await fetchStockOHLCV(sym, this._timeframe)
             }
           }
+
+          console.log(`[DataLoader] Returned ${data.length} items. Oldest: ${data[0]?.timestamp}, Newest: ${data[data.length-1]?.timestamp}`)
 
           // more=true means there might be more historical data to load backward
           const more = (type !== 'backward') ? true : data.length >= 500
