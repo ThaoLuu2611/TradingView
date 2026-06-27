@@ -315,12 +315,23 @@ export class Toolbar {
       })
     }
 
-    // Document click/pointer → close candleDrop if outside .candle-wrap
+    // Document click/pointer → close dropdowns if outside
     document.addEventListener('pointerdown', (e) => {
       if (this._candleDrop && !e.target.closest('.candle-wrap')) {
         this._candleDrop.classList.remove('open')
       }
-    }, true)
+      if (this._tfDrop && !e.target.closest('.tf-dropdown-wrap')) {
+        this._tfDrop.classList.remove('open')
+      }
+      const searchDrop = document.getElementById('searchDrop')
+      if (searchDrop && !e.target.closest('.search-box')) {
+        searchDrop.classList.remove('open')
+      }
+      const lp = document.getElementById('left-panel')
+      if (lp && !e.target.closest('#left-panel') && !e.target.closest('#btn-mobile-drawings')) {
+        lp.classList.remove('open')
+      }
+    })
   }
 
   _subscribe() {
