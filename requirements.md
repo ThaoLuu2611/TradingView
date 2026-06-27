@@ -17,9 +17,10 @@ Web app xem chart cá nhân, 1 người dùng, chạy local. Không login, khôn
 ## Data (Free, không cần key)
 | API | Dùng cho | Ghi chú |
 |---|---|---|
-| Binance `api.binance.com` | Crypto OHLCV + watchlist giá dự phòng | Không cần key |
+| Binance `api.binance.com` | Crypto OHLCV + giá watchlist realtime (WebSocket) | Không cần key |
 | Yahoo Finance `query1.finance.yahoo.com` | Stock OHLCV + watchlist giá stocks (mỗi 60s) | Không cần key, delay ~15 phút |
-| CoinGecko `api.coingecko.com` | Giá watchlist crypto (mỗi 30s) | Free: 10-30 req/min |
+
+> ⚠️ **CoinGecko đã bị loại bỏ** — Watchlist giá Crypto giờ dùng Binance REST API (`/api/v3/ticker/24hr`) poll mỗi 30s, kết hợp Binance WebSocket stream để cập nhật giá realtime.
 
 ---
 
@@ -111,6 +112,17 @@ Web app xem chart cá nhân, 1 người dùng, chạy local. Không login, khôn
 - [ ] Crosshair khi hover (KLineChart built-in)
 - [ ] Resize tự động khi window resize
 
+#### Tương tác Y-axis (Trục giá)
+- [ ] **Kéo trục giá lên/xuống**: Chạm/click vào vùng trục giá bên phải rồi kéo → thu/phóng thang đo Y (hành vi mặc định của KLineCharts)
+- [ ] **Vuốt lên trên trục giá**: Chart phóng to (zoom in giá)
+- [ ] **Vuốt xuống trên trục giá**: Chart thu nhỏ (zoom out giá)
+- [ ] **Auto Scale mặc định**: Khi mới vào web hoặc đổi mã, biểu đồ TỰ ĐỘNG co giãn trục Y để vừa khung nến — không cần kéo thủ công
+- [ ] **Kéo trái/phải**: Di chuyển timeline trái/phải (pan ngang — built-in)
+- [ ] **Scroll chuột**: Zoom in/out timeline (trục X)
+- [ ] **Double-click trục Y**: Reset về Auto Scale
+
+> ⚠️ **Known Issue (chưa fix)**: KLineCharts v9 lưu trạng thái "đã kéo Y-axis thủ công" theo instance chart. Khi đổi mã, instance cũ vẫn giữ lock này nên nến mới có thể bị lệch scale. Workaround hiện tại: dispose + recreate chart instance khi đổi mã (có hiệu ứng nháy nhẹ). Cần tìm cách reset internal `autoCalcTickFlag` mà không recreate.
+
 ### Indicator Panel (popup overlay, click ngoài đóng)
 - [ ] Search box filter indicators
 - [ ] **OVERLAY** (render trên chart chính):
@@ -138,10 +150,19 @@ Web app xem chart cá nhân, 1 người dùng, chạy local. Không login, khôn
 - [ ] Mỗi row: [Symbol bold] [Price mono] [% change xanh/đỏ]
 - [ ] Row đang xem → highlight (selected state)
 - [ ] Click row → `EVENTS.SYMBOL_CHANGE`
+- [ ] Hover row → hiện nút ✕ bên phải để xoá khỏi watchlist
+- [ ] **Xoá row**: Click ✕ → xoá khỏi danh sách + **tự động save ngay** (không cần nhấn Save)
+- [ ] **Thêm mã vào Watchlist**:
+  - Cách 1: Click nút **＋** nhỏ bên cạnh nút phóng to/thu nhỏ ở header chart khi mã chưa có trong watchlist
+  - Cách 2: Chuột phải vào chart → menu context:
+    - Nếu mã chưa có trong watchlist: hiện "Add to Watchlist"
+    - Nếu mã đã có trong watchlist: hiện "Remove from Watchlist"
+  - Khi thêm thành công: toast **xanh lam** (success). Khi lỗi: toast **đỏ** (error)
+  - Icon ＋ tự ẩn khi mã đã có trong watchlist
 - [ ] **Crypto:** BTC, ETH, BNB, SOL, XRP, ADA, DOGE, AVAX, DOT, MATIC, LTC, LINK, TON, NEAR, APT
 - [ ] **Stocks:** AAPL, MSFT, GOOGL, AMZN, NVDA, TSLA, META, NFLX, AMD, INTC
 - [ ] Giá + % cập nhật định kỳ:
-  - **Crypto**: CoinGecko API, mỗi 30s
+  - **Crypto**: Binance REST `/api/v3/ticker/24hr` poll mỗi 30s
   - **Stocks**: Yahoo Finance `quote` endpoint, mỗi 60s
   - ⚠️ Yahoo Finance không hỗ trợ realtime — giá stocks có thể delay 15 phút (chấp nhận được cho personal use)
 
