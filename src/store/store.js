@@ -104,7 +104,19 @@ export function get(key) {
 export function set(key, value) {
   _state[key] = value
   emit(`state:${key}`, value)
+  
+  // Auto persist if it's a persistent key
+  if (PERSIST_KEYS.includes(key)) {
+    try {
+      localStorage.setItem(LS_PREFIX + key, JSON.stringify(value))
+    } catch (_) {}
+  }
 }
+
+// Auto-save all state when the window is closed/refreshed
+window.addEventListener('beforeunload', () => {
+  forceSave()
+})
 
 /**
  * Subscribe to a named event.

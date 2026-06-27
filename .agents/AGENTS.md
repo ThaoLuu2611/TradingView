@@ -11,3 +11,4 @@
   2. Merge `develop` into `main` (`git checkout main`, `git merge develop`).
   3. Create a tag (`git tag -a v<new_version> -m "Release v<new_version>"`) and push.
   4. Always switch back to `develop` branch after deployment (`git checkout develop`)!
+

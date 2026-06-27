@@ -328,9 +328,10 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:14px;background:#
 .sym-icon-btn svg{width:12px;height:12px}
 
 /* ── TOAST NOTIFICATION ── */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#ef5350;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;z-index:9999;display:none}
+.toast{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#ef5350;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;z-index:9999;display:none}
 .toast.show{display:block}
 .toast.success{background:#2962ff}
+.toast.warning{background:#ffb74d;color:#131722}
 
 /* ── SPINNER ── */
 .spinner{width:12px;height:12px;border:2px solid #e0e3eb;border-top-color:#2962ff;border-radius:50%;animation:spin 0.6s linear infinite;display:none}

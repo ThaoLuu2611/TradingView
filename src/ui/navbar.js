@@ -46,11 +46,8 @@ export class Navbar {
 
     const btnSaveLayout = document.getElementById('btn-save-layout')
     if (btnSaveLayout) {
-      btnSaveLayout.addEventListener('click', async () => {
-        emit(EVENTS.BEFORE_SAVE)
-        const { forceSave } = await import('../store/store.js')
-        forceSave()
-        this._showToast('Layout saved successfully', 'success')
+      btnSaveLayout.addEventListener('click', () => {
+        this._showToast('Cloud save (Coming soon...)', 'warning')
       })
     }
 
@@ -124,16 +121,20 @@ export class Navbar {
   _showToast(msg, type = 'error') {
     if (!this._toast) return
 
-    // Clear any existing timer so multiple errors don't race
     if (this._toastTimer !== null) {
       clearTimeout(this._toastTimer)
       this._toastTimer = null
     }
 
     this._toast.textContent = msg
-    this._toast.classList.remove('success')
+    
+    // Clear old types
+    this._toast.classList.remove('success', 'warning', 'error')
+    
     if (type === 'success') {
       this._toast.classList.add('success')
+    } else if (type === 'warning' || type === 'info') {
+      this._toast.classList.add('warning')
     }
     
     this._toast.classList.add('show')
