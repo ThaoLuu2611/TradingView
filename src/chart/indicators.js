@@ -5,9 +5,11 @@
 import { on, get, set } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 import { stochRsiIndicator } from './stochRSI.js'
+import { clusterAlgoIndicator } from './clusterAlgo.js'
 
 if (window.klinecharts) {
   window.klinecharts.registerIndicator(stochRsiIndicator)
+  window.klinecharts.registerIndicator(clusterAlgoIndicator)
 }
 
 // KLineChart v9: method names are createIndicator / removeIndicator
@@ -20,6 +22,7 @@ const INDICATOR_NAME_MAP = {
   KDJ:  'KDJ',
   WR:   'WR',
   StochRSI: 'STOCHRSI',
+  ClusterAlgo: 'CLUSTERALGO',
 }
 
 const OVERLAY_INDICATORS = new Set(['MA', 'EMA', 'BB'])
@@ -134,7 +137,7 @@ class IndicatorManager {
 
       if (enabledLines.length > 0) {
         styles = {
-          lines: enabledLines.map(l => ({ color: l.color, size: 1, style: 'solid' }))
+          lines: enabledLines.map(l => ({ color: l.color }))
         };
       }
     } else if (options.calcParams) {
@@ -154,23 +157,21 @@ class IndicatorManager {
     if (calcParams) value.calcParams = calcParams;
     if (styles) value.styles = styles;
 
-    if (calcParams || styles) {
-      if (this._chart) {
-        try {
-          this._chart.overrideIndicator({ name: klineName, calcParams, styles });
-        } catch (e) {}
-      }
-    }
-
     const isOverlay = OVERLAY_INDICATORS.has(name)
     const isAlreadyAdded = isOverlay ? this._overlaysAdded.has(name) : this._paneIds.has(name)
 
-    // If already added, override the specific pane to apply new calcParams and styles without destroying it
+    // If already added, recreate it on the exact same pane to ensure all styles/params are applied
     if (isAlreadyAdded) {
       const paneId = isOverlay ? 'candle_pane' : this._paneIds.get(name)
       if (this._chart) {
         try {
-          this._chart.overrideIndicator(value, paneId)
+          this._chart.removeIndicator(paneId, klineName)
+          this._chart.createIndicator(value, isOverlay, { id: paneId })
+          
+          // Re-apply heights to all sub-panes to prevent KLineChart from resetting the layout and cutting off indicators
+          for (const subPaneId of this._paneIds.values()) {
+            try { this._chart.setPaneOptions({ id: subPaneId, height: 80, minHeight: 30 }); } catch (e) {}
+          }
         } catch (e) {
           console.warn(`[IndicatorManager] Failed to update ${klineName}:`, e)
         }

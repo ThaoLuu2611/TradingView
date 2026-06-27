@@ -62,7 +62,7 @@ Web app xem chart cá nhân, 1 người dùng, chạy local. Không login, khôn
   - Default: `1m` `5m` `15m` `1h` `4h` `1D` `1W`
   - Active timeframe → blue background
 - [ ] Nút `∨` → dropdown timeframe đầy đủ:
-  - Header: `+ Add custom interval` — **chỉ là UI placeholder, chưa implement**
+  - Khung giờ tùy chỉnh (Custom Timeframe Aggregation): Tự động lấy nến cơ bản `1M` từ API và tổng hợp lại để tính ra nến hợp lệ cho các khung giờ không được API hỗ trợ trực tiếp (như `3m`, `5m`, v.v.). Khung biểu đồ và nhãn Watermark tự động cập nhật.
   - Sections: TICKS / SECONDS / MINUTES / HOURS / DAYS / WEEKS / MONTHS
   - Mỗi item: tên timeframe bên trái + ⭐ bên phải
   - Click ⭐ → toggle pin/unpin (thêm/xoá khỏi toolbar shortcuts)
@@ -73,7 +73,10 @@ Web app xem chart cá nhân, 1 người dùng, chạy local. Không login, khôn
   - `Candlestick` (mặc định, có dấu ✓)
   - `Line`
   - Click ngoài → đóng
-- [ ] `📈 Indicators` → mở Indicator panel popup
+- [ ] `📈 Indicators` → mở Indicator panel popup (Modal)
+  - Cung cấp đầy đủ các chỉ báo (MA, EMA, BOLL, RSI, MACD, KDJ, WR, StochRSI).
+  - Tích hợp tính năng **Auto-preview (Real-time updates)**: Kéo thả bảng màu hoặc đổi thông số sẽ tự động render ngay lên biểu đồ để xem trước.
+  - Hỗ trợ đổi màu (Color Picker) và bật/tắt độc lập cho từng thành phần (lines) của tất cả các Indicator. Thuật toán xử lý an toàn chống lỗi NaN Contagion (lây lan lỗi khi dữ liệu khuyết).
 - [ ] `🔍 Search symbol...` (input, bên phải) → dropdown results:
   - **Không gọi API search** — filter từ danh sách cố định (`SYMBOL_LIST` trong store)
   - `SYMBOL_LIST` gồm: 15 crypto symbols + 10 stock symbols (hardcode, không thay đổi)
@@ -89,8 +92,12 @@ Web app xem chart cá nhân, 1 người dùng, chạy local. Không login, khôn
   - Click item trong submenu → chọn subtool đó, đóng submenu
 - [ ] **Fibonacci** icon → click toggle submenu:
   - Fib Retracement ✓, Fib Extension, Fib Channel, Fib Time Zone
-  - Click item → chọn subtool đó
-- [ ] **Trash** icon (bottom) → `EVENTS.DRAWING_CLEAR` → xoá tất cả drawings
+  - Click item → chọn subtool đó (Đã đồng bộ chuẩn trạng thái đèn xanh Active State).
+  - Áp dụng giao diện màu sắc Pastel (Pastel Theme): Viền nền text trong suốt, dải nền mờ (alpha 0.15) mang lại trải nghiệm cao cấp. Tách rời cấu hình thành Custom Overlay chuyên biệt để không xung đột.
+- [ ] **Chức Năng Xóa Nhanh (Floating Trash Button)**: 
+  - Nút thùng rác nổi tự động xuất hiện tại vị trí chuột ngay khi chọn công cụ vẽ. Tự động ẩn khi nhấp ra ngoài.
+- [ ] Hỗ trợ **Undo (Ctrl + Z)** hoàn chỉnh cho toàn bộ các thao tác thêm/xóa bản vẽ (thông qua mảng lưu lịch sử trong DrawingManager).
+- [ ] **Trash** icon (bottom) → `EVENTS.DRAWING_CLEAR` → xoá tất cả bản vẽ.
 - [ ] Chỉ 1 submenu mở tại 1 thời điểm
 - [ ] Click ngoài left panel → đóng submenu
 

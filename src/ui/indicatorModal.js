@@ -6,14 +6,15 @@ import { get, set, emit } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 
 const INDICATORS = [
-  { name: 'MA',   label: 'Moving Average',     type: 'main', hasLines: true },
-  { name: 'EMA',  label: 'Exp Moving Average', type: 'main', hasLines: true },
-  { name: 'BB',   label: 'Bollinger Bands',    type: 'main', hasLines: true },
-  { name: 'RSI',  label: 'Relative Strength',  type: 'sub',  hasLines: true },
-  { name: 'MACD', label: 'MACD',               type: 'sub',  hasLines: true },
-  { name: 'KDJ',  label: 'KDJ',                type: 'sub',  hasLines: true },
-  { name: 'WR',   label: 'Williams %R',        type: 'sub',  hasLines: true },
-  { name: 'StochRSI', label: 'Stoch RSI',      type: 'sub',  hasLines: true },
+  { type: 'main', name: 'MA', label: 'Moving Average', hasLines: true },
+  { type: 'main', name: 'EMA', label: 'Exp Moving Average', hasLines: true },
+  { type: 'main', name: 'BB', label: 'Bollinger Bands', hasLines: true },
+  { type: 'sub', name: 'RSI', label: 'Relative Strength Index', hasLines: true },
+  { type: 'sub', name: 'MACD', label: 'MACD', hasLines: true },
+  { type: 'sub', name: 'KDJ', label: 'KDJ', hasLines: true },
+  { type: 'sub', name: 'WR', label: 'Williams %R', hasLines: true },
+  { type: 'sub', name: 'StochRSI', label: 'Stochastic RSI', hasLines: true },
+  { type: 'sub', name: 'ClusterAlgo', label: 'Cluster Algo', hasLines: true }
 ]
 
 export class IndicatorModal {
