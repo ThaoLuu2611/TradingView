@@ -296,7 +296,17 @@ class KLineChartWrapper {
         data = await fetchStockOHLCV(symbol, timeframe)
       }
 
-      this._chart.setSymbol(symbol)
+      if (typeof this._chart.setSymbol === 'function') {
+        this._chart.setSymbol(symbol)
+      } else if (typeof this._chart.getChart === 'function') {
+        const chartImp = this._chart.getChart()
+        if (typeof chartImp.setSymbol === 'function') {
+          chartImp.setSymbol(symbol)
+        } else if (typeof chartImp._resetYAxisAutoCalcTickFlag === 'function') {
+          chartImp._resetYAxisAutoCalcTickFlag()
+        }
+      }
+
       this._chart.applyNewData(data)
       emit(EVENTS.CHART_READY, true)
 
