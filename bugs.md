@@ -19,7 +19,7 @@ Tài liệu này dùng để theo dõi các lỗi (bugs) chưa được giải q
 - **Nguyên nhân dự đoán:** KLineCharts v9 mặc định bật chế độ **Auto Scale** trên Y-axis, khóa chiều dọc. Người dùng phải kéo trục giá thủ công một lần để "unlock" thì mới pan dọc được. Không tìm được API public nào để tắt lock này mà không cần tương tác từ người dùng.
 - **Những gì đã thử (không thành công):**
   1. Giả lập sự kiện `mousedown/mousemove/mouseup` vào vùng Y-axis để tắt auto-scale — thư viện không phản ứng với synthetic events
-  2. Gọi `setStyles({ yAxis: { autoScale: false } })` — tắt auto-scale nhưng khi đổi mã giá bị lệch hoàn toàn
+  2. Gọi `setStyles({ yAxis: { autoScale: false } })` — tắt được lock dọc nhưng Y-axis bị kẹt cứng ở range cũ, khi đổi mã (ví dụ BTC 60k → BNB 500) chart trắng xoá vì nến mới nằm ngoài khung giá đang hiển thị
   3. Dùng `dispatchEvent(new MouseEvent('dblclick'))` để reset — không hoạt động
   4. Truy cập internal `_resetYAxisAutoCalcTickFlag` — không expose ra public API
 - **Hướng xử lý tiếp theo:**
