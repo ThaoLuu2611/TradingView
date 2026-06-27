@@ -82,6 +82,9 @@ class IndicatorManager {
 
   /** Add indicators from store state on first load */
   _initFromStore() {
+    if (this._isInitialized) return
+    this._isInitialized = true
+
     const indicators = get('indicators') || {}
     for (const [name, config] of Object.entries(indicators)) {
       if (config.enabled) {
@@ -141,13 +144,12 @@ class IndicatorManager {
     const isOverlay = OVERLAY_INDICATORS.has(name)
     const isAlreadyAdded = isOverlay ? this._overlaysAdded.has(name) : this._paneIds.has(name)
 
-    // If already added, recreate it on the exact same pane to ensure all styles/params are applied
+    // If already added, override it on the same pane to preserve layout order
     if (isAlreadyAdded) {
       const paneId = isOverlay ? 'candle_pane' : this._paneIds.get(name)
       if (this._chart) {
         try {
-          this._chart.removeIndicator({ paneId, name: klineName })
-          this._chart.createIndicator(value, { isStack: isOverlay, pane: { id: paneId } })
+          this._chart.overrideIndicator(value, paneId)
           
           // Re-apply heights to all sub-panes to prevent KLineChart from resetting the layout and cutting off indicators
           for (const subPaneId of this._paneIds.values()) {

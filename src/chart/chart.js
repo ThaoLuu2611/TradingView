@@ -57,6 +57,8 @@ class KLineChartWrapper {
 
     /** @type {string | null} */
     this._selectedOverlayId = null
+
+    this._fetchId = 0
   }
 
   // -------------------------------------------------------------------------
@@ -94,7 +96,9 @@ class KLineChartWrapper {
             return
           }
 
-          console.log(`[DataLoader] Triggered type: ${type}, timestamp: ${timestamp}`)
+          const currentFetchId = ++this._fetchId
+          console.log(`[DataLoader] Triggered type: ${type}, timestamp: ${timestamp}, fetchId: ${currentFetchId}`)
+
           // backward = user scrolled left; timestamp = earliest candle loaded
           const endTimestamp = (type === 'backward' && timestamp) ? timestamp - 1 : undefined
 
@@ -103,10 +107,16 @@ class KLineChartWrapper {
             data = await fetchOHLCV(sym, this._timeframe, limit, endTimestamp)
           } else {
             if (type === 'backward') {
+              // Yahoo API not paginated yet, return empty to prevent duplicate blocks
               data = []
             } else {
               data = await fetchStockOHLCV(sym, this._timeframe)
             }
+          }
+
+          if (this._fetchId !== currentFetchId) {
+            console.log(`[DataLoader] Discarding stale fetch ${currentFetchId} (current is ${this._fetchId})`)
+            return // Skip callback to prevent duplicate data rendering
           }
 
           console.log(`[DataLoader] Returned ${data.length} items. Oldest: ${data[0]?.timestamp}, Newest: ${data[data.length-1]?.timestamp}`)
