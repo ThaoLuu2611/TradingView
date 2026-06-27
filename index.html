@@ -10,6 +10,23 @@
   <link rel="stylesheet" href="mobile.css"/>
 
   <script src="https://cdn.jsdelivr.net/npm/klinecharts@10.0.0-beta3/dist/umd/klinecharts.min.js"></script>
+  <script>
+    // Debug: show JS errors directly on the page
+    window.addEventListener('error', e => {
+      const d = document.getElementById('_dbg') || (() => {
+        const el = document.createElement('div')
+        el.id = '_dbg'
+        el.style = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(220,0,0,.92);color:#fff;font:13px/1.5 monospace;padding:10px;max-height:50vh;overflow:auto;'
+        document.body?.appendChild(el)
+        return el
+      })()
+      d.innerHTML += `<div>❌ ${e.message}<br><small>${e.filename}:${e.lineno}</small></div>`
+    })
+    window.addEventListener('unhandledrejection', e => {
+      const d = document.getElementById('_dbg') || document.body.appendChild(Object.assign(document.createElement('div'), {id:'_dbg', style:'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(220,0,0,.92);color:#fff;font:13px/1.5 monospace;padding:10px;'}))
+      d.innerHTML += `<div>⚠️ Unhandled: ${e.reason}</div>`
+    })
+  </script>
 </head>
 <body>
 <div id="app">

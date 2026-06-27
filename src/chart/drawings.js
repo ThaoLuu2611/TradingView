@@ -102,7 +102,7 @@ class DrawingManager {
     btn.onclick = (e) => {
       e.stopPropagation()
       if (this._chart) {
-        this._chart.removeOverlay(overlayId)
+        this._chart.removeOverlay({ id: overlayId })
         // Clean up history to prevent ghost undos
         if (this._history) {
           this._history = this._history.filter(id => id !== overlayId)
@@ -169,7 +169,7 @@ class DrawingManager {
   undo() {
     if (!this._chart || !this._history || this._history.length === 0) return
     const lastId = this._history.pop()
-    this._chart.removeOverlay(lastId)
+    this._chart.removeOverlay({ id: lastId })
   }
 
   setChart(chart) {
