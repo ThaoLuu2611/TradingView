@@ -223,6 +223,12 @@ class KLineChartWrapper {
     }
     el.addEventListener('pointerup', endPointer, { capture: true })
     el.addEventListener('pointercancel', endPointer, { capture: true })
+
+    const stopTouch = (e) => { e.stopPropagation(); if (e.cancelable) e.preventDefault() }
+    el.addEventListener('touchstart', stopTouch, { capture: true, passive: false })
+    el.addEventListener('touchmove', stopTouch, { capture: true, passive: false })
+    el.addEventListener('touchend', stopTouch, { capture: true, passive: false })
+    el.addEventListener('touchcancel', stopTouch, { capture: true, passive: false })
     // ------------------------------
 
     // KLineChart v9: use setStyles() instead of setStyleOptions()

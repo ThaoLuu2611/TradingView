@@ -45,8 +45,8 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 
 /* ── TIMEFRAME DROPDOWN ── */
 .tf-dropdown-wrap{position:relative}
-.tf-more-btn{background:none;border:1px solid transparent;border-radius:4px;padding:3px 6px;font-size:12px;color:#787b86;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:2px}
-.tf-more-btn:hover{background:#e0e3eb;color:#131722}
+.tf-more-btn{background:none;border:none;cursor:pointer;color:#787b86;display:flex;align-items:center;justify-content:center;padding:0 6px;height:100%;transition:0.15s;}
+.tf-more-btn:hover{color:#131722;}
 .tf-drop{position:absolute;top:calc(100% + 6px);left:0;width:220px;background:#fff;border:1px solid #e0e3eb;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:300;display:none;max-height:420px;overflow-y:auto}
 .tf-drop.open{display:block}
 .tf-drop-add{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;color:#2962ff;font-weight:500;cursor:pointer;border-bottom:1px solid #e0e3eb}
