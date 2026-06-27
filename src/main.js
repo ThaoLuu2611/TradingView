@@ -83,4 +83,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     })
   }
+
+  // Compare symbols support
+  on(EVENTS.COMPARE_ADD, async ({ symbol, action }) => {
+    const isNewPane = action.toLowerCase().includes('pane')
+    const paneId = isNewPane ? `pane_${symbol}` : 'candle_pane'
+    
+    // Show loading
+    document.getElementById('nav-spinner').classList.add('visible')
+    try {
+      const { fetchOHLCV } = await import('./api/binance.js')
+      const data = await fetchOHLCV(symbol, get('timeframe') || '15m', 1000)
+      
+      chartWrapper._chart.createIndicator({
+        name: 'CompareSymbol',
+        calcParams: [data, symbol, '#fcc201']
+      }, isNewPane, { id: paneId })
+      
+    } catch(err) {
+      console.error('Compare fetch failed:', err)
+      const toast = document.getElementById('toast')
+      if (toast) {
+        toast.textContent = `Error comparing ${symbol}`
+        toast.className = 'toast show'
+        setTimeout(() => toast.className = 'toast', 2000)
+      }
+    } finally {
+      document.getElementById('nav-spinner').classList.remove('visible')
+    }
+  })
 })

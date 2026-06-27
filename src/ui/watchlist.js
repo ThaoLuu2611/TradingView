@@ -86,6 +86,27 @@ export class Watchlist {
         }
       }
     })
+
+    on(EVENTS.WATCHLIST_ADD, (symbol) => {
+      const wl = get('watchlist')
+      if (wl) {
+        // Find if it's crypto or stock (we'll assume crypto for simplicity if added from compare)
+        const isStock = !symbol.endsWith('USDT') && symbol.length <= 5
+        const listName = isStock ? 'stocks' : 'crypto'
+        if (!wl[listName].includes(symbol)) {
+          wl[listName].unshift(symbol)
+          set('watchlist', wl)
+          set('activeTab', listName)
+          // update tabs
+          this._tabs.forEach((t) => t.classList.remove('active'))
+          const targetTab = Array.from(this._tabs).find(t => t.dataset.tab === listName)
+          if (targetTab) targetTab.classList.add('active')
+          
+          this._renderList()
+          this._highlightSelected(get('symbol'))
+        }
+      }
+    })
   }
 
   // ── Render ────────────────────────────────────────────────────────────────

@@ -40,6 +40,33 @@ export const SYMBOL_LIST = [
   { symbol: 'INTC',  name: 'Intel Corporation',   type: 'stock' },
 ]
 
+let isSymbolsFetched = false
+
+export async function fetchAllBinanceSymbols() {
+  if (isSymbolsFetched) return
+  try {
+    const res = await fetch('https://api.binance.com/api/v3/exchangeInfo')
+    const data = await res.json()
+    const fetchedSymbols = data.symbols
+      .filter(s => s.status === 'TRADING')
+      .map(s => ({
+        symbol: s.symbol,
+        name: s.baseAsset + ' / ' + s.quoteAsset,
+        type: 'crypto'
+      }))
+    
+    const existing = new Set(SYMBOL_LIST.map(s => s.symbol))
+    for (const s of fetchedSymbols) {
+      if (!existing.has(s.symbol)) {
+        SYMBOL_LIST.push(s)
+      }
+    }
+    isSymbolsFetched = true
+  } catch (err) {
+    console.error('Failed to fetch binance symbols', err)
+  }
+}
+
 // ---------------------------------------------------------------------------
 
 export class SearchBar {
@@ -53,6 +80,7 @@ export class SearchBar {
     this._bindDOM()
     this._bindEvents()
     this._subscribe()
+    fetchAllBinanceSymbols()
   }
 
   // ── DOM references ────────────────────────────────────────────────────────
@@ -175,7 +203,7 @@ export class SearchBar {
       (item) =>
         item.symbol.toLowerCase().includes(q) ||
         item.name.toLowerCase().includes(q)
-    )
+    ).slice(0, 100) // Limit to 100 results to avoid lag
   }
 
   _openDrop() {

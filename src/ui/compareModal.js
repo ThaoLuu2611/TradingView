@@ -63,11 +63,35 @@ export class CompareModal {
       })
     }
 
-    // Action buttons (delegated)
+    // Row clicks (delegated)
     if (this._compareList) {
       this._compareList.addEventListener('click', (e) => {
-        if (e.target.closest('.compare-action-btn')) {
-          this._close()
+        const row = e.target.closest('.compare-row')
+        if (!row) return
+
+        const symbol = row.querySelector('.compare-sym-name').innerText
+        import('../store/store.js').then(({ emit }) => {
+          emit(EVENTS.SYMBOL_CHANGE, symbol)
+        })
+        this._close()
+      })
+
+      // Right click to add to watchlist
+      this._compareList.addEventListener('contextmenu', (e) => {
+        const row = e.target.closest('.compare-row')
+        if (row) {
+          e.preventDefault()
+          const symbol = row.querySelector('.compare-sym-name').innerText
+          import('../store/store.js').then(({ emit }) => {
+            emit(EVENTS.WATCHLIST_ADD, symbol)
+          })
+          // Simple toast visual feedback
+          const toast = document.getElementById('toast')
+          if (toast) {
+            toast.textContent = `Added ${symbol} to Watchlist`
+            toast.className = 'toast show'
+            setTimeout(() => toast.className = 'toast', 2000)
+          }
         }
       })
     }
@@ -79,11 +103,11 @@ export class CompareModal {
     if (!this._compareList) return
     const q = query.trim().toLowerCase()
     
-    let results = SYMBOL_LIST
+    let results = SYMBOL_LIST.slice(0, 15) // Default to first 15 (mocked ones)
     if (q) {
       results = SYMBOL_LIST.filter(s => 
         s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
-      )
+      ).slice(0, 100)
     }
 
     const getIcon = (sym, type) => {
@@ -103,19 +127,17 @@ export class CompareModal {
     if (results.length === 0) {
       html += `<div style="padding: 20px; text-align: center; color: #787b86; font-size: 13px;">No symbols match your criteria</div>`
     } else {
-      results.forEach(s => {
+      results.forEach(item => {
         html += `
           <div class="compare-row">
-            ${getIcon(s.symbol, s.type)}
+            ${getIcon(item.symbol, item.type)}
             <div class="compare-sym-info">
-              <div class="compare-sym-name">${s.symbol}</div>
-              <div class="compare-sym-desc">${s.name}</div>
+              <div class="compare-sym-name">${item.symbol}</div>
+              <div class="compare-sym-desc">${item.name}</div>
             </div>
-            <div class="compare-source">${getSource(s.type)}</div>
-            <div class="compare-actions">
-              <button class="compare-action-btn">Same % scale</button>
-              <button class="compare-action-btn">New price scale</button>
-              <button class="compare-action-btn">New pane</button>
+            <div class="compare-source">
+              <div class="cse-name">${item.type === 'crypto' ? 'Binance' : 'NASDAQ'}</div>
+              <div class="cse-type">${item.type === 'crypto' ? 'spot' : 'stock'}</div>
             </div>
           </div>
         `

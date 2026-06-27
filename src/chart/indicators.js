@@ -6,10 +6,12 @@ import { on, get, set } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 import { stochRsiIndicator } from './stochRSI.js'
 import { clusterAlgoIndicator } from './clusterAlgo.js'
+import { compareIndicator } from './compareIndicator.js'
 
 if (window.klinecharts) {
   window.klinecharts.registerIndicator(stochRsiIndicator)
   window.klinecharts.registerIndicator(clusterAlgoIndicator)
+  window.klinecharts.registerIndicator(compareIndicator)
 }
 
 // KLineChart v9: method names are createIndicator / removeIndicator
