@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+</head>
+<body>
+  <div id="chart" style="width: 800px; height: 600px;"></div>
+  <button onclick="max()">Max Main</button>
+  <button onclick="restore()">Restore</button>
+  <script>
+    const chart = klinecharts.init('chart');
+    chart.applyNewData([{timestamp: Date.now(), open: 1, high: 2, low: 1, close: 2}]);
+    chart.createIndicator('MACD', false, { id: 'pane1', height: 100 });
+    
+    function max() {
+      chart.setPaneOptions({ id: 'candle_pane', state: 'maximize' });
+    }
+    function restore() {
+      chart.setPaneOptions({ id: 'candle_pane', state: 'normal' });
+    }
+  </script>
+</body>
+</html>

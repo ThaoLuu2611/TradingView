@@ -3,6 +3,7 @@
 import { chartWrapper }    from './chart/chart.js'
 import { indicatorManager } from './chart/indicators.js'
 import { drawingManager }   from './chart/drawings.js'
+import { paneControlManager } from './ui/paneControls.js'
 
 import { Navbar }          from './ui/navbar.js'
 import { Toolbar }         from './ui/toolbar.js'
@@ -18,7 +19,11 @@ import { startStockPriceFeed }  from './api/yahoo.js'
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Chart trước — container phải sẵn sàng
   chartWrapper.init('chart-container')
-  indicatorManager.init(chartWrapper.chart)
+  
+  // Attach Pane Controls before indicators so they can use it
+  paneControlManager.init(chartWrapper.chart)
+  
+  indicatorManager.init(chartWrapper.chart, paneControlManager)
   drawingManager.init(chartWrapper.chart)
 
   // 2. UI modules — mỗi class tự bindDOM + subscribe

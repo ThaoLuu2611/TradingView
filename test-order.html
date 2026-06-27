@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+</head>
+<body>
+  <div id="chart" style="width: 800px; height: 600px;"></div>
+  <script>
+    const chart = klinecharts.init('chart');
+    chart.createIndicator('MACD', false, { id: 'macd' });
+    setTimeout(() => {
+      // Try to move candle_pane below macd
+      console.log('Moving candle_pane down...');
+      // In v8 there was an order property. Let's see if v9 has it.
+      // But we can't see the console easily. We can write to body.
+    }, 1000);
+  </script>
+</body>
+</html>

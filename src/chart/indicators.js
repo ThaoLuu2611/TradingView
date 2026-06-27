@@ -28,14 +28,16 @@ class IndicatorManager {
   constructor() {
     this._chart   = null
     this._paneIds = new Map() // name → paneId (sub-chart indicators only)
+    this._paneControlManager = null
   }
 
   /**
    * Called from main.js after chart is initialized.
    * @param {object} chart – KLineChart chart instance
    */
-  init(chart) {
+  init(chart, paneControlManager = null) {
     this._chart = chart
+    this._paneControlManager = paneControlManager
 
     // Subscribe to toggle events
     on(EVENTS.INDICATOR_TOGGLE, ({ name, enabled, period }) => {
@@ -90,8 +92,17 @@ class IndicatorManager {
         this._chart.createIndicator(value, false, { id: 'candle_pane' })
       } else {
         // New sub-chart pane; returns paneId
-        const paneId = this._chart.createIndicator(value, false, { height: 100 })
-        if (paneId) this._paneIds.set(name, paneId)
+        const height = options.height || 100
+        const paneId = this._chart.createIndicator(value, false, { height })
+        if (paneId) {
+          this._paneIds.set(name, paneId)
+          // Wait slightly for DOM to be ready before attaching controls
+          setTimeout(() => {
+            if (this._paneControlManager) {
+              this._paneControlManager.attach(paneId, name)
+            }
+          }, 50)
+        }
       }
     } catch (e) {
       console.error(`[IndicatorManager] add(${name}) failed:`, e)
@@ -129,6 +140,44 @@ class IndicatorManager {
   updatePeriod(name, period) {
     this.remove(name)
     this.add(name, { period })
+  }
+
+  /**
+   * Move an indicator pane up or down by re-creating all active sub-panes in the new order.
+   */
+  move(name, direction) {
+    if (!this._paneIds.has(name)) return // Only sub-panes can be moved
+
+    const activeNames = Array.from(this._paneIds.keys())
+    const idx = activeNames.indexOf(name)
+    
+    if (direction === 'up' && idx > 0) {
+      // Swap with previous
+      const temp = activeNames[idx - 1]
+      activeNames[idx - 1] = activeNames[idx]
+      activeNames[idx] = temp
+    } else if (direction === 'down' && idx < activeNames.length - 1) {
+      // Swap with next
+      const temp = activeNames[idx + 1]
+      activeNames[idx + 1] = activeNames[idx]
+      activeNames[idx] = temp
+    } else {
+      return // Cannot move
+    }
+
+    const indicators = get('indicators') || {}
+    
+    // 1. Remove all active sub-panes in current order to free up space
+    for (const n of activeNames) {
+      this.remove(n)
+    }
+
+    // 2. Re-add them in the NEW order
+    for (const n of activeNames) {
+      if (indicators[n] && indicators[n].enabled) {
+        this.add(n, { period: indicators[n].period })
+      }
+    }
   }
 }
 
