@@ -36,7 +36,7 @@ TradingView/
     ├── api/
     │   ├── binance.js      ← Fetch OHLCV crypto (Binance)
     │   ├── yahoo.js        ← Fetch OHLCV stocks + giá watchlist stocks (mỗi 60s)
-    │   └── coingecko.js    ← Fetch giá watchlist crypto (poll mỗi 30s)
+    │   └── binance-feed.js ← Fetch giá watchlist crypto (Binance REST poll mỗi 30s)
     │
     ├── chart/
     │   ├── chart.js        ← KLineChart wrapper (init, load data, resize)
@@ -168,7 +168,7 @@ export const EVENTS = {
 | `INDICATOR_PERIOD` | indicatorPanel | indicators |
 | `DRAWING_TOOL` | leftPanel | drawings |
 | `DRAWING_CLEAR` | leftPanel | drawings |
-| `PRICES_UPDATE` | coingecko.js (crypto), yahoo.js (stocks) | watchlist, navbar |
+| `PRICES_UPDATE` | binance-feed.js (crypto), yahoo.js (stocks) | watchlist, navbar |
 | `TF_PIN_TOGGLE` | toolbar dropdown | toolbar |
 | `LOADING` | chart.js | navbar (spinner) |
 | `ERROR` | chart.js, api/*.js | navbar (toast) |
@@ -179,7 +179,7 @@ export const EVENTS = {
 
 ## API Layer
 
-Mỗi hàm fetch là **pure async function**, không biết về UI. Ngoại lệ: `coingecko.js` import `emit` từ store để push giá định kỳ.
+Mỗi hàm fetch là **pure async function**, không biết về UI. Ngoại lệ: `binance-feed.js` import `emit` từ store để push giá định kỳ.
 
 ```js
 // src/api/binance.js
@@ -192,12 +192,12 @@ export async function fetchStockOHLCV(ticker, interval) { ... }
 export async function fetchStockPrice(ticker) { ... }
 // returns: { price: 189.5, change: 1.23 }
 
-// src/api/coingecko.js — import emit từ store để push PRICES_UPDATE
-// ⚠️ Free tier: 10-30 req/min → poll mỗi 30s, KHÔNG 10s
+// src/api/binance-feed.js — import emit từ store để push PRICES_UPDATE
+// Poll Binance REST /api/v3/ticker/24hr mỗi 30s
 export async function fetchPrices(symbols) { ... }
 // returns: { BTC: { price: 94250, change: 2.34 }, ... }
-export function startPriceFeed() { ... }
-// set Interval 30000ms → gọi fetchPrices() → emit(EVENTS.PRICES_UPDATE, data)
+export function startCryptoPriceFeed() { ... }
+// setInterval 30000ms → gọi fetchPrices() → emit(EVENTS.PRICES_UPDATE, data)
 ```
 
 **Error handling bắt buộc trong mọi API call:**
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCompare()
 
   // 3. Data feed sau cùng
-  startCryptoPriceFeed()  // CoinGecko, poll mỗi 30s
+  startCryptoPriceFeed()  // Binance REST, poll mỗi 30s
   startStockPriceFeed()   // Yahoo Finance, poll mỗi 60s
 })
 ```
