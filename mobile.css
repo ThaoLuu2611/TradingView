@@ -36,15 +36,16 @@
     overflow-x: visible;
   }
   .tf-group { display: flex; flex: 1 1 100%; align-items: center; min-width: 0; }
-  .tf-dropdown-wrap { order: 1; flex-shrink: 0; margin-right: 4px; }
+  .tf-dropdown-wrap { order: 2; flex-shrink: 0; margin-right: 4px; }
   #tf-buttons {
-    order: 2;
+    order: 1;
     flex: 1;
     overflow-x: auto;
     padding-bottom: 4px;
     scrollbar-width: thin;
   }
-  #btn-mobile-drawings { order: 3; display: flex !important; margin-left: 4px; padding: 4px; }
+  #btn-mobile-drawings { display: flex !important; margin-left: 0; padding: 4px; }
+  #tb-sep-draw { display: none; }
 
   .search-box { flex: 1; width: auto; }
   .tb-spacer { display: none; }
@@ -72,9 +73,9 @@
   /* ── LEFT PANEL (Drawings) -> Dropdown from Toolbar ── */
   #left-panel {
     position: fixed;
-    top: 55px; /* Dropdown below toolbar */
-    right: 10px;
-    left: auto;
+    top: 90px; /* Dropdown below second row of toolbar */
+    left: 10px;
+    right: auto;
     bottom: auto;
     width: 45px;
     height: auto;
@@ -108,12 +109,12 @@
     top: auto;
   }
   
-  /* Submenus open to the left because panel is on the right edge */
+  /* Submenus open to the right because panel is on the left edge */
   .lp-submenu, #trendMenu, #fibMenu {
     top: 0;
     bottom: auto;
-    left: auto;
-    right: calc(100% + 5px);
+    left: calc(100% + 5px);
+    right: auto;
     transform: none;
   }
 
