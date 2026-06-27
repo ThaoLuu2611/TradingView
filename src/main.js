@@ -4,6 +4,8 @@ import { chartWrapper }    from './chart/chart.js'
 import { indicatorManager } from './chart/indicators.js'
 import { drawingManager }   from './chart/drawings.js'
 import { paneControlManager } from './ui/paneControls.js'
+import { on } from './store/store.js'
+import { EVENTS } from './store/events.js'
 
 import { Navbar }          from './ui/navbar.js'
 import { Toolbar }         from './ui/toolbar.js'

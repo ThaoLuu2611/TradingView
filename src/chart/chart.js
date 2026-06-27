@@ -139,51 +139,7 @@ class KLineChartWrapper {
     el.addEventListener('pointercancel', endPointer, { capture: true })
     // ------------------------------
 
-    // KLineChart v9: use setStyles() instead of setStyleOptions()
-    this._chart.setStyles({
-      yAxis: {
-        autoScale: false
-      },
-      crosshair: {
-        mode: 'normal'
-      },
-      grid: {
-        show: true,
-        horizontal: { color: '#f0f3fa', size: 1, style: 'solid', dashedValue: [2,2] },
-        vertical:   { color: '#f0f3fa', size: 1, style: 'solid', dashedValue: [2,2] },
-      },
-      overlay: {
-        point: {
-          color: '#ffffff',
-          borderColor: '#2962ff',
-          borderSize: 1,
-          radius: 4,
-          activeColor: '#ffffff',
-          activeBorderColor: '#2962ff',
-          activeBorderSize: 2,
-          activeRadius: 5,
-        }
-      },
-      candle: {
-        type: 'candle_solid',
-        bar: {
-          upColor:         '#26a69a',
-          downColor:       '#ef5350',
-          noChangeColor:   '#26a69a',
-          upBorderColor:   '#26a69a',
-          downBorderColor: '#ef5350',
-          upWickColor:     '#26a69a',
-          downWickColor:   '#ef5350',
-        },
-        area: {
-          lineColor: '#26a69a',
-          backgroundColor: [
-            { offset: 0, color: 'rgba(38,166,154,0.35)' },
-            { offset: 1, color: 'rgba(38,166,154,0.02)' },
-          ],
-        },
-      },
-    })
+    this._applyStyles()
 
     // Wire up store events
     on(EVENTS.SYMBOL_CHANGE, (symbol) => {
@@ -280,7 +236,8 @@ class KLineChartWrapper {
    * Fetch OHLCV data and push it into the chart.
    * @param {string} symbol
    * @param {string} timeframe
-    async loadData(symbol, timeframe) {
+   */
+  async loadData(symbol, timeframe) {
     if (!this._chart) return
 
     emit(EVENTS.LOADING, true)
@@ -294,18 +251,14 @@ class KLineChartWrapper {
         data = await fetchStockOHLCV(symbol, timeframe)
       }
 
-      // Recreate chart to reset Y-axis scale if symbol changes
-      // This is the ONLY 100% reliable way to force KLineCharts to re-enable Auto Scale
-      // after the user has manually panned the chart vertically (which disables Auto Scale).
+      // When changing symbol, recreate the chart to reset Y-axis auto-scale
       if (this._lastSymbol && this._lastSymbol !== symbol) {
-        const container = document.getElementById('chart-container')
-        if (container) {
-          window.klinecharts.dispose('chart-container')
-          this._chart = window.klinecharts.init('chart-container')
+        const el = document.getElementById('chart-container')
+        if (el) {
+          window.klinecharts.dispose(el)
+          this._chart = window.klinecharts.init(el)
           this._applyStyles()
           this.setChartType(get('chartType') || 'candle')
-          
-          // Notify managers (indicators, drawings) that the chart instance has changed
           emit(EVENTS.CHART_RECREATED, this._chart)
         }
       }
@@ -394,6 +347,55 @@ class KLineChartWrapper {
     return CRYPTO_SUFFIXES.some((suffix) =>
       symbol.toUpperCase().endsWith(suffix),
     )
+  }
+
+  /** Apply default chart styles */
+  _applyStyles() {
+    if (!this._chart) return
+    this._chart.setStyles({
+      yAxis: {
+        autoScale: true
+      },
+      crosshair: {
+        mode: 'normal'
+      },
+      grid: {
+        show: true,
+        horizontal: { color: '#f0f3fa', size: 1, style: 'solid', dashedValue: [2,2] },
+        vertical:   { color: '#f0f3fa', size: 1, style: 'solid', dashedValue: [2,2] },
+      },
+      overlay: {
+        point: {
+          color: '#ffffff',
+          borderColor: '#2962ff',
+          borderSize: 1,
+          radius: 4,
+          activeColor: '#ffffff',
+          activeBorderColor: '#2962ff',
+          activeBorderSize: 2,
+          activeRadius: 5,
+        }
+      },
+      candle: {
+        type: 'candle_solid',
+        bar: {
+          upColor:         '#26a69a',
+          downColor:       '#ef5350',
+          noChangeColor:   '#26a69a',
+          upBorderColor:   '#26a69a',
+          downBorderColor: '#ef5350',
+          upWickColor:     '#26a69a',
+          downWickColor:   '#ef5350',
+        },
+        area: {
+          lineColor: '#26a69a',
+          backgroundColor: [
+            { offset: 0, color: 'rgba(38,166,154,0.35)' },
+            { offset: 1, color: 'rgba(38,166,154,0.02)' },
+          ],
+        },
+      },
+    })
   }
 
   /** Public getter so indicatorManager/drawingManager can access the chart instance */
