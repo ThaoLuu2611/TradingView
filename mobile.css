@@ -36,7 +36,13 @@
     overflow-x: visible;
   }
   .tf-group { display: flex; flex: 1 1 100% !important; align-items: center; min-width: 0; }
-  .tf-dropdown-wrap { order: 2; flex-shrink: 0; margin-left: 4px; }
+  .tf-dropdown-wrap { order: 2; flex-shrink: 0; margin-left: 6px; }
+  .tf-more-btn {
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-left: 2px;
+  }
   .tf-drop {
     left: auto;
     right: 0;
