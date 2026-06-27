@@ -10,7 +10,7 @@ import { EVENTS } from '../store/events.js'
 // ---------------------------------------------------------------------------
 
 /** @type {Array<{symbol: string, name: string, type: 'crypto'|'stock'}>} */
-const SYMBOL_LIST = [
+export const SYMBOL_LIST = [
   // Crypto (15)
   { symbol: 'BTCUSDT',   name: 'Bitcoin',          type: 'crypto' },
   { symbol: 'ETHUSDT',   name: 'Ethereum',          type: 'crypto' },
