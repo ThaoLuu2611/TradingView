@@ -9,7 +9,8 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 #body{display:flex;flex:1;overflow:hidden}
 #left-panel{width:45px;flex-shrink:0}
 #chart-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
-#chart-container{flex:1}
+#chart-container{flex:1;touch-action:none !important}
+#chart-container *{touch-action:none !important}
 #sub-chart{height:120px;flex-shrink:0}
 #right-panel{width:200px;flex-shrink:0}
 

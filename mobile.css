@@ -169,4 +169,22 @@
     left: 50% !important;
     transform: translateX(-50%);
   }
+  /* Indicator Modal Mobile Adjustments */
+  .ind-modal {
+    height: 90vh !important;
+    max-height: 600px;
+    width: 95vw !important;
+  }
+  .ind-modal-sidebar {
+    width: 120px !important;
+  }
+  .ind-sidebar-item {
+    padding: 10px 12px;
+  }
+  .ind-content-settings {
+    padding: 8px 12px;
+  }
+  .ind-modal-footer {
+    padding: 12px 16px;
+  }
 }

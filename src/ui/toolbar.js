@@ -330,12 +330,14 @@ export class Toolbar {
       <button class="tf-btn${tf === activeTf ? ' active' : ''}" data-tf="${tf}">${tf}</button>
     `).join('')
 
-    // Bind clicks
+    // Bind clicks and touches for mobile responsiveness
     this._tfButtons.querySelectorAll('.tf-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      const handleTfSelect = (e) => {
         const tf = btn.dataset.tf
         emit(EVENTS.TIMEFRAME_CHANGE, tf)
-      })
+      }
+      btn.addEventListener('click', handleTfSelect)
+      btn.addEventListener('pointerdown', handleTfSelect)
     })
   }
 

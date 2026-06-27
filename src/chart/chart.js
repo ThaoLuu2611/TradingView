@@ -54,10 +54,10 @@ class KLineChartWrapper {
       crosshair: {
         mode: 'normal',
         horizontal: {
-          line: { style: 'solid', color: '#787b86', size: 1 }
+          line: { style: 'dashed', color: '#787b86', size: 1, dashedValue: [4, 4] }
         },
         vertical: {
-          line: { style: 'solid', color: '#787b86', size: 1 }
+          line: { style: 'dashed', color: '#787b86', size: 1, dashedValue: [4, 4] }
         }
       },
       grid: {
@@ -75,6 +75,9 @@ class KLineChartWrapper {
           activeBorderColor: '#2962ff',
           activeBorderSize: 2,
           activeRadius: 5,
+        },
+        line: {
+          style: 'solid'
         }
       },
       candle: {

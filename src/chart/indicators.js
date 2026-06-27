@@ -69,32 +69,6 @@ class IndicatorManager {
       }
     })
 
-    on(EVENTS.BEFORE_SAVE, () => {
-      const state = get('indicators') || {}
-      let changed = false
-      
-      // Sync overlays
-      for (const name of Array.from(this._overlaysAdded)) {
-        const klineName = INDICATOR_NAME_MAP[name]
-        const ind = this._chart.getIndicatorByPaneId('candle_pane', klineName)
-        if (!ind) {
-          this._overlaysAdded.delete(name)
-          if (state[name]) { state[name].enabled = false; changed = true; }
-        }
-      }
-      
-      // Sync sub-panes
-      for (const [name, paneId] of this._paneIds.entries()) {
-        const klineName = INDICATOR_NAME_MAP[name]
-        const ind = this._chart.getIndicatorByPaneId(paneId, klineName)
-        if (!ind) {
-          this._paneIds.delete(name)
-          if (state[name]) { state[name].enabled = false; changed = true; }
-        }
-      }
-      
-      if (changed) {
-        set('indicators', state)
       }
     })
   }
