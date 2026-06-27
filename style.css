@@ -4,13 +4,10 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 
 /* ── APP SHELL LAYOUT ── */
 #app{display:flex;flex-direction:column;height:100vh}
-#navbar{height:36px;flex-shrink:0}
-#toolbar{height:36px;flex-shrink:0}
 #body{display:flex;flex:1;overflow:hidden}
 #left-panel{width:45px;flex-shrink:0}
 #chart-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
-#chart-container{flex:1;touch-action:none !important}
-#chart-container *{touch-action:none !important}
+#chart-container{flex:1;min-height:0;min-width:0;position:relative;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #sub-chart{height:120px;flex-shrink:0}
 #right-panel{width:200px;flex-shrink:0}
 
@@ -28,7 +25,14 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 
 /* ── ROW 2: Toolbar ── */
 .toolbar{height:36px;background:#f0f3fa;border-bottom:1px solid #e0e3eb;display:flex;align-items:center;padding:0 8px;gap:2px;flex-shrink:0}
-.tf-btn{background:none;border:1px solid transparent;border-radius:4px;padding:3px 7px;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#787b86;cursor:pointer;transition:.15s}
+.toolbar > * {flex-shrink:0}
+.tb-spacer {flex-shrink:1; flex-grow:1}
+#tf-buttons{display:flex;flex-wrap:nowrap;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:1;min-width:0;scrollbar-width:thin;padding-bottom:4px}
+#tf-buttons::-webkit-scrollbar{height:4px}
+#tf-buttons::-webkit-scrollbar-track{background:transparent}
+#tf-buttons::-webkit-scrollbar-thumb{background:#e0e3eb;border-radius:2px}
+#tf-buttons::-webkit-scrollbar-thumb:hover{background:#b2b5be}
+.tf-btn{background:none;border:1px solid transparent;border-radius:4px;padding:3px 7px;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#787b86;cursor:pointer;transition:.15s;flex-shrink:0}
 .tf-btn:hover{background:#e0e3eb;color:#131722}
 .tf-btn.active{background:#2962ff;color:#fff;border-color:#2962ff}
 .tb-sep{width:1px;height:20px;background:#e0e3eb;margin:0 4px}
@@ -166,7 +170,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 
 .ind-modal-content {
   flex: 1; display: flex; flex-direction: column; position: relative;
-  background: #ffffff;
+  background: #ffffff; min-height: 0; min-width: 0;
 }
 .ind-content-header {
   padding: 16px 24px 8px; font-size: 13px; font-weight: 600; color: #131722;

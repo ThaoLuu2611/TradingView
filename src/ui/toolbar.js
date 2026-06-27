@@ -212,12 +212,12 @@ export class TimeframeDrop {
       }
     })
 
-    // Document click → close if not inside .tf-dropdown-wrap
-    document.addEventListener('click', (e) => {
+    // Document click/pointer → close if not inside .tf-dropdown-wrap
+    document.addEventListener('pointerdown', (e) => {
       if (!e.target.closest('.tf-dropdown-wrap')) {
         this._drop.classList.remove('open')
       }
-    })
+    }, true)
   }
 }
 
@@ -260,18 +260,20 @@ export class Toolbar {
   _bindEvents() {
     // ∨ button → toggle timeframe dropdown
     if (this._btnTfMore) {
-      this._btnTfMore.addEventListener('click', (e) => {
+      const handleMore = (e) => {
         e.stopPropagation()
         this.tfDrop.toggle()
-      })
+      }
+      this._btnTfMore.addEventListener('click', handleMore)
     }
 
     // Candle type button → toggle candleDrop
     if (this._btnCandle) {
-      this._btnCandle.addEventListener('click', (e) => {
+      const handleCandle = (e) => {
         e.stopPropagation()
         this._candleDrop.classList.toggle('open')
-      })
+      }
+      this._btnCandle.addEventListener('click', handleCandle)
     }
 
     // Candle drop items → emit chart type change + update active state
@@ -295,19 +297,20 @@ export class Toolbar {
 
     // Indicators button → toggle #indPanel
     if (this._btnIndicators) {
-      this._btnIndicators.addEventListener('click', (e) => {
+      const handleInd = (e) => {
         e.stopPropagation()
         const panel = document.getElementById('indPanel')
         if (panel) panel.classList.toggle('open')
-      })
+      }
+      this._btnIndicators.addEventListener('click', handleInd)
     }
 
-    // Document click → close candleDrop if outside .candle-wrap
-    document.addEventListener('click', (e) => {
+    // Document click/pointer → close candleDrop if outside .candle-wrap
+    document.addEventListener('pointerdown', (e) => {
       if (this._candleDrop && !e.target.closest('.candle-wrap')) {
         this._candleDrop.classList.remove('open')
       }
-    })
+    }, true)
   }
 
   _subscribe() {

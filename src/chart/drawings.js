@@ -138,7 +138,12 @@ class DrawingManager {
     }
 
     this._currentMode = subtool
-    const id = this._chart.createOverlay(overlayName)
+    const id = this._chart.createOverlay({
+      name: overlayName,
+      styles: {
+        line: { style: 'solid' }
+      }
+    })
     
     // Store id for undo
     if (id) {

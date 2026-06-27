@@ -97,11 +97,11 @@ export class SearchBar {
     })
 
     // Close when clicking outside the search-box
-    document.addEventListener('click', (e) => {
+    document.addEventListener('pointerdown', (e) => {
       if (!this._searchBox.contains(e.target)) {
         this._closeDrop()
       }
-    })
+    }, true)
   }
 
   // ── Store subscriptions ───────────────────────────────────────────────────

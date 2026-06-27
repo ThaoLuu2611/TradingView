@@ -49,16 +49,100 @@ class KLineChartWrapper {
 
     this._chart = window.klinecharts.init(el)
 
+    // --- Mobile Y-Axis Drag & Pinch Fix ---
+    // Expand Y-axis touch hitbox and support both 1-finger drag and 2-finger pinch on the Y-axis.
+    const activePointers = new Map()
+    let fakeMouseY = 0
+    let lastDistance = null
+    let isFakingMouse = false
+
+    const dispatchFakePointer = (target, originalEvent, newType, y, buttons) => {
+      const init = {
+        bubbles: true, cancelable: true,
+        clientX: originalEvent.clientX, clientY: y,
+        screenX: originalEvent.screenX, screenY: y,
+        button: 0, buttons: buttons,
+        pointerId: 1, // use a fake pointer id
+        pointerType: 'mouse',
+        isPrimary: true
+      }
+      target.dispatchEvent(new PointerEvent(newType, init))
+      target.dispatchEvent(new MouseEvent(newType.replace('pointer', 'mouse'), init))
+    }
+
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+        const rect = el.getBoundingClientRect()
+        // If touch is within 70px of the right edge
+        if (e.clientX - rect.left > rect.width - 70) {
+          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY, lastY: e.clientY })
+          e.stopPropagation()
+          e.preventDefault()
+
+          if (activePointers.size === 1) {
+            isFakingMouse = true
+            fakeMouseY = e.clientY
+            dispatchFakePointer(e.target, e, 'pointerdown', fakeMouseY, 1)
+          } else if (activePointers.size === 2) {
+            const pts = Array.from(activePointers.values())
+            lastDistance = Math.abs(pts[0].y - pts[1].y)
+          }
+        }
+      }
+    }, { capture: true })
+
+    el.addEventListener('pointermove', (e) => {
+      if (activePointers.has(e.pointerId)) {
+        const ptr = activePointers.get(e.pointerId)
+        const dy = e.clientY - ptr.lastY
+        ptr.x = e.clientX
+        ptr.y = e.clientY
+        ptr.lastY = e.clientY
+        
+        e.stopPropagation()
+        if (e.cancelable) e.preventDefault()
+
+        if (activePointers.size === 1) {
+          fakeMouseY += dy
+          dispatchFakePointer(e.target, e, 'pointermove', fakeMouseY, 1)
+        } else if (activePointers.size === 2) {
+          const pts = Array.from(activePointers.values())
+          const currentDistance = Math.abs(pts[0].y - pts[1].y)
+          if (lastDistance !== null) {
+            const diff = currentDistance - lastDistance
+            // Spread (+) -> fakeMouseY increases (simulating dragging price scale down -> zoom in)
+            // Pinch (-) -> fakeMouseY decreases (simulating dragging price scale up -> zoom out)
+            fakeMouseY += diff
+            dispatchFakePointer(e.target, e, 'pointermove', fakeMouseY, 1)
+          }
+          lastDistance = currentDistance
+        }
+      }
+    }, { capture: true, passive: false })
+
+    const endPointer = (e) => {
+      if (activePointers.has(e.pointerId)) {
+        activePointers.delete(e.pointerId)
+        e.stopPropagation()
+        
+        if (activePointers.size === 1) {
+          lastDistance = null
+        } else if (activePointers.size === 0 && isFakingMouse) {
+          isFakingMouse = false
+          lastDistance = null
+          const upType = e.type === 'pointercancel' ? 'pointercancel' : 'pointerup'
+          dispatchFakePointer(e.target, e, upType, fakeMouseY, 0)
+        }
+      }
+    }
+    el.addEventListener('pointerup', endPointer, { capture: true })
+    el.addEventListener('pointercancel', endPointer, { capture: true })
+    // ------------------------------
+
     // KLineChart v9: use setStyles() instead of setStyleOptions()
     this._chart.setStyles({
       crosshair: {
-        mode: 'normal',
-        horizontal: {
-          line: { style: 'dashed', color: '#787b86', size: 1, dashedValue: [4, 4] }
-        },
-        vertical: {
-          line: { style: 'dashed', color: '#787b86', size: 1, dashedValue: [4, 4] }
-        }
+        mode: 'normal'
       },
       grid: {
         show: true,
@@ -75,9 +159,6 @@ class KLineChartWrapper {
           activeBorderColor: '#2962ff',
           activeBorderSize: 2,
           activeRadius: 5,
-        },
-        line: {
-          style: 'solid'
         }
       },
       candle: {

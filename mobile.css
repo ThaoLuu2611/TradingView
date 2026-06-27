@@ -29,13 +29,20 @@
   
   .navbar { padding: 0 8px; }
   .toolbar {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    padding-right: 20px;
+    height: auto;
+    flex-wrap: wrap;
+    padding: 8px;
+    gap: 8px;
+    overflow-x: visible;
   }
-  .toolbar::-webkit-scrollbar { display: none; }
-  .search-box { width: 140px; }
+  #tf-buttons {
+    flex: 1 1 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .search-box { flex: 1; width: auto; }
+  .tb-spacer { display: none; }
 
   /* ── RIGHT PANEL (Watchlist) -> Off-Canvas Drawer ── */
   #right-panel {

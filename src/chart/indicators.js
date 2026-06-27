@@ -69,8 +69,6 @@ class IndicatorManager {
       }
     })
 
-      }
-    })
   }
 
   /** Add indicators from store state on first load */

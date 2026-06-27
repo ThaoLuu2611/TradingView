@@ -33,7 +33,7 @@ const _state = {
       'TSLA','META','NFLX','AMD','INTC',
     ],
   },
-  pinnedTimeframes: ['1m','5m','15m','1h','4h','1D','1W'],
+  pinnedTimeframes: ['15m','1h','4h','1D','1W'],
   customIntervals:  [],   // [{tf, label, unit, value, seconds}]
   loading: false,
   error:   null,
