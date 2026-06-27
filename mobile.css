@@ -35,12 +35,17 @@
     gap: 8px;
     overflow-x: visible;
   }
+  .tf-group { display: flex; flex: 1 1 100%; align-items: center; min-width: 0; }
+  .tf-dropdown-wrap { order: 1; flex-shrink: 0; margin-right: 4px; }
   #tf-buttons {
-    flex: 1 1 100%;
+    order: 2;
+    flex: 1;
     overflow-x: auto;
     padding-bottom: 4px;
     scrollbar-width: thin;
   }
+  #btn-mobile-drawings { order: 3; display: flex !important; margin-left: 4px; padding: 4px; }
+
   .search-box { flex: 1; width: auto; }
   .tb-spacer { display: none; }
 
@@ -64,93 +69,52 @@
   }
   .rp-resizer { display: none; } /* No resizing on mobile */
 
-  /* ── LEFT PANEL (Drawings) -> Bottom Sheet ── */
+  /* ── LEFT PANEL (Drawings) -> Dropdown from Toolbar ── */
   #left-panel {
     position: fixed;
-    bottom: -100%; /* Hidden off-screen at the bottom */
-    left: 0;
-    width: 100%;
+    top: 55px; /* Dropdown below toolbar */
+    right: 10px;
+    left: auto;
+    bottom: auto;
+    width: 45px;
     height: auto;
     background: #fff;
-    z-index: 900;
-    flex-direction: row;
-    flex-wrap: wrap; /* Wrap instead of overflow so submenus aren't clipped */
-    overflow: visible;
-    border-top: 1px solid #e0e3eb;
-    border-right: none;
-    padding: 12px 10px;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
-    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 16px 16px 0 0;
-    gap: 12px;
+    z-index: 1000;
+    flex-direction: column; /* Vertical, exactly like web */
+    border: 1px solid #e0e3eb;
+    border-radius: 6px;
+    padding: 8px 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    display: none;
+    transition: none;
+    gap: 4px;
   }
   #left-panel.open {
-    bottom: 0; /* Slide up */
+    display: flex;
   }
-  #left-panel::-webkit-scrollbar { display: none; }
   .lp-tool-group {
-    width: auto;
+    width: 100%;
   }
   .lp-btn {
-    width: 44px; /* Larger touch targets */
-    height: 44px;
-    background: #f0f3fa;
-    border-radius: 50%;
+    width: 33px;
+    height: 33px;
   }
   .lp-btn:hover, .lp-btn.active {
     background: #e3f2fd;
   }
   .lp-arrow {
-    bottom: auto;
-    top: 6px;
+    bottom: 2px;
     right: 6px;
+    top: auto;
   }
   
-  /* Submenus need to open upwards instead of rightwards */
+  /* Submenus open to the left because panel is on the right edge */
   .lp-submenu, #trendMenu, #fibMenu {
-    top: auto;
-    bottom: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  /* ── FLOATING ACTION BUTTONS ── */
-  .fab-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    z-index: 9999;
-  }
-
-  @keyframes bounce-fab {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  .fab-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #2962ff;
-    color: #fff;
-    border: none;
-    box-shadow: 0 4px 12px rgba(41,98,255,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s;
-    animation: bounce-fab 2s infinite;
-  }
-  .fab-btn:active {
-    transform: scale(0.95);
-  }
-  .fab-btn svg {
-    width: 20px;
-    height: 20px;
+    top: 0;
+    bottom: auto;
+    left: auto;
+    right: calc(100% + 5px);
+    transform: none;
   }
 
   /* Overlay for when drawers are open */

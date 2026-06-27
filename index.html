@@ -44,13 +44,18 @@
 
   <!-- ROW 2: Toolbar -->
   <div id="toolbar" class="toolbar">
-    <div id="tf-buttons"></div>
-    <div class="tf-dropdown-wrap">
-      <button class="tf-more-btn" id="btn-tf-more">&#8964;</button>
-      <div class="tf-drop" id="tfDrop">
-        <div class="tf-drop-add">&#43; Add custom interval...</div>
-        <div id="tf-drop-content"></div>
+    <div class="tf-group" style="display: flex; flex: 1; align-items: center; min-width: 0;">
+      <div id="tf-buttons" style="flex: 1; overflow-x: auto; display: flex; scrollbar-width: thin; padding-bottom: 4px;"></div>
+      <div class="tf-dropdown-wrap" style="flex-shrink: 0;">
+        <button class="tf-more-btn" id="btn-tf-more">&#8964;</button>
+        <div class="tf-drop" id="tfDrop">
+          <div class="tf-drop-add">&#43; Add custom interval...</div>
+          <div id="tf-drop-content"></div>
+        </div>
       </div>
+      <button class="tb-btn" id="btn-mobile-drawings" style="display:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+      </button>
     </div>
     <div class="tb-sep"></div>
     <div class="candle-wrap">

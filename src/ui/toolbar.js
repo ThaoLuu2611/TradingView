@@ -255,6 +255,7 @@ export class Toolbar {
     this._btnCandle   = document.getElementById('btn-candle-type')
     this._candleDrop  = document.getElementById('candleDrop')
     this._btnIndicators = document.getElementById('btn-indicators')
+    this._btnMobileDrawings = document.getElementById('btn-mobile-drawings')
   }
 
   _bindEvents() {
@@ -303,6 +304,15 @@ export class Toolbar {
         if (panel) panel.classList.toggle('open')
       }
       this._btnIndicators.addEventListener('click', handleInd)
+    }
+
+    // Mobile Drawings button → toggle #left-panel
+    if (this._btnMobileDrawings) {
+      this._btnMobileDrawings.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const lp = document.getElementById('left-panel')
+        if (lp) lp.classList.toggle('open')
+      })
     }
 
     // Document click/pointer → close candleDrop if outside .candle-wrap
