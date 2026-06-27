@@ -54,9 +54,24 @@ export class Watchlist {
         const row = e.target.closest('.wl-row')
         if (!row) return
         const symbol = row.dataset.symbol
-        if (symbol) {
-          emit(EVENTS.SYMBOL_CHANGE, symbol)
+        if (!symbol) return
+
+        // Handle delete button
+        if (e.target.closest('.wl-del-btn')) {
+          e.stopPropagation()
+          const activeTab = get('activeTab')
+          const wl = get('watchlist')
+          if (wl && wl[activeTab]) {
+            wl[activeTab] = wl[activeTab].filter(s => s !== symbol)
+            set('watchlist', wl)
+            this._renderList()
+            this._highlightSelected(get('symbol'))
+          }
+          return
         }
+
+        // Normal row click -> change symbol
+        emit(EVENTS.SYMBOL_CHANGE, symbol)
       })
     }
   }
@@ -130,8 +145,13 @@ export class Watchlist {
         <div class="wl-row" data-symbol="${symbol}">
           <span class="wl-sym">${displayName}</span>
           <div class="wl-right">
-            <div class="wl-price" id="price-${symbol}">—</div>
-            <div class="wl-chg"  id="chg-${symbol}"></div>
+            <div class="wl-price-col">
+              <div class="wl-price" id="price-${symbol}">—</div>
+              <div class="wl-chg"  id="chg-${symbol}"></div>
+            </div>
+            <div class="wl-del-btn" title="Remove from Watchlist">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+            </div>
           </div>
         </div>`
     }).join('')

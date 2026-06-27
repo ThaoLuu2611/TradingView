@@ -105,11 +105,56 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:13px;background:#
 .wl-tab{padding:6px 10px;font-size:12px;font-weight:500;color:#787b86;cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
 .wl-tab.active{color:#2962ff;border-bottom-color:#2962ff}
 .wl-list{flex:1;overflow-y:auto}
-.wl-row{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid #e0e3eb;cursor:pointer;transition:.1s}
-.wl-row:hover{background:#e8eaf0}
-.wl-row.selected{background:#e3f2fd}
-.wl-sym{font-weight:600;font-size:12px;font-family:'JetBrains Mono',monospace}
-.wl-right{text-align:right}
+.wl-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f3fa;
+  font-size: 13px;
+  position: relative;
+}
+.wl-row:hover {
+  background: #f8f9fd;
+}
+.wl-row.selected {
+  background: #e3effd;
+}
+.wl-right {
+  display: flex;
+  align-items: center;
+}
+.wl-price-col {
+  text-align: right;
+  transition: transform 0.2s;
+}
+.wl-row:hover .wl-price-col {
+  transform: translateX(-24px);
+}
+.wl-del-btn {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: #b2b5be;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.wl-row:hover .wl-del-btn {
+  opacity: 1;
+}
+.wl-del-btn:hover {
+  color: #f23645;
+}
+.wl-sym {
+  font-weight: 500;
+  color: #131722;
+}
 .wl-price{font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:500}
 .wl-chg{font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500}
 .up{color:#26a69a}.dn{color:#ef5350}
