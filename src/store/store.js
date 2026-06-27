@@ -46,7 +46,7 @@ const _listeners = new Map()
 // Persistence — tự động save/load vào localStorage
 // ---------------------------------------------------------------------------
 
-const PERSIST_KEYS = ['indicators', 'pinnedTimeframes', 'customIntervals', 'timeframe']
+const PERSIST_KEYS = ['indicators', 'pinnedTimeframes', 'customIntervals', 'timeframe', 'watchlist']
 const LS_PREFIX    = 'chartpro:'
 
 // Restore persisted state on module load

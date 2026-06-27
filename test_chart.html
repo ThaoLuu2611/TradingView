@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<body>
+<div id="chart" style="width: 800px; height: 600px;"></div>
+<script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
+<script>
+  const chart = klinecharts.init('chart');
+  chart.setStyles({ yAxis: { autoScale: false } });
+  console.log(JSON.stringify(chart.getStyles().yAxis));
+</script>
+</body>
+</html>

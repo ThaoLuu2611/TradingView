@@ -216,6 +216,65 @@ class KLineChartWrapper {
         }
       }
     })
+
+    // Handle context menu
+    const chartContainer = document.getElementById('chart-container')
+    const ctxMenu = document.getElementById('chartContextMenu')
+    const ctxAddWl = document.getElementById('ctx-add-wl')
+    
+    if (chartContainer && ctxMenu && ctxAddWl) {
+      chartContainer.addEventListener('contextmenu', (e) => {
+        e.preventDefault()
+        const symbol = get('symbol')
+        const wl = get('watchlist')
+        if (!symbol || !wl) return
+        
+        const inCrypto = wl.crypto && wl.crypto.includes(symbol)
+        const inStocks = wl.stocks && wl.stocks.includes(symbol)
+        const isInWatchlist = inCrypto || inStocks
+        
+        ctxAddWl.textContent = isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'
+        ctxMenu.style.display = 'block'
+        
+        // Ensure menu doesn't go off-screen
+        let x = e.clientX
+        let y = e.clientY
+        const menuRect = ctxMenu.getBoundingClientRect()
+        if (x + menuRect.width > window.innerWidth) x = window.innerWidth - menuRect.width
+        if (y + menuRect.height > window.innerHeight) y = window.innerHeight - menuRect.height
+        
+        ctxMenu.style.left = x + 'px'
+        ctxMenu.style.top = y + 'px'
+      })
+      
+      document.addEventListener('click', (e) => {
+        if (e.target !== ctxAddWl) {
+          ctxMenu.style.display = 'none'
+        }
+      })
+      
+      ctxAddWl.addEventListener('click', () => {
+        const symbol = get('symbol')
+        const wl = get('watchlist')
+        if (!symbol || !wl) return
+        
+        const inCrypto = wl.crypto && wl.crypto.includes(symbol)
+        const inStocks = wl.stocks && wl.stocks.includes(symbol)
+        const isInWatchlist = inCrypto || inStocks
+        
+        if (isInWatchlist) {
+          if (inCrypto) wl.crypto = wl.crypto.filter(s => s !== symbol)
+          if (inStocks) wl.stocks = wl.stocks.filter(s => s !== symbol)
+          // Clone the object slightly to force trigger the set setter if needed
+          set('watchlist', { ...wl })
+          import('../store/store.js').then(({ forceSave }) => forceSave())
+        } else {
+          emit(EVENTS.WATCHLIST_ADD, symbol)
+        }
+        
+        ctxMenu.style.display = 'none'
+      })
+    }
   }
 
   /**

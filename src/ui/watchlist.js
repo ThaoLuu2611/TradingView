@@ -2,7 +2,7 @@
 // watchlist.js – Watchlist UI module for the TradingView-clone app
 // ---------------------------------------------------------------------------
 
-import { get, set, on, emit } from '../store/store.js'
+import { get, set, on, emit, forceSave } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 import { formatPrice, formatPercent } from '../utils/format.js'
 
@@ -18,7 +18,9 @@ export class Watchlist {
     this._bindEvents()
     this._subscribe()
     // Highlight the initially active symbol
-    this._highlightSelected(get('symbol'))
+    const currentSymbol = get('symbol')
+    this._highlightSelected(currentSymbol)
+    this._updateAddButtonVisibility(currentSymbol)
   }
 
   // ── DOM references ────────────────────────────────────────────────────────
@@ -26,11 +28,21 @@ export class Watchlist {
   _bindDOM() {
     this._list = document.getElementById('wl-list')
     this._tabs = document.querySelectorAll('.wl-tab')
+    this._btnAddWl = document.getElementById('btn-add-to-wl')
   }
 
   // ── DOM event bindings ────────────────────────────────────────────────────
 
   _bindEvents() {
+    if (this._btnAddWl) {
+      this._btnAddWl.addEventListener('click', () => {
+        const symbol = get('symbol')
+        if (symbol) {
+          emit(EVENTS.WATCHLIST_ADD, symbol)
+        }
+      })
+    }
+
     // Tab clicks
     this._tabs.forEach((tab) => {
       tab.addEventListener('click', () => {
@@ -64,8 +76,7 @@ export class Watchlist {
           if (wl && wl[activeTab]) {
             wl[activeTab] = wl[activeTab].filter(s => s !== symbol)
             set('watchlist', wl)
-            this._renderList()
-            this._highlightSelected(get('symbol'))
+            forceSave()
           }
           return
         }
@@ -79,8 +90,15 @@ export class Watchlist {
   // ── Store subscriptions ───────────────────────────────────────────────────
 
   _subscribe() {
+    on('state:watchlist', () => {
+      this._renderList()
+      this._highlightSelected(get('symbol'))
+      this._updateAddButtonVisibility(get('symbol'))
+    })
+
     on(EVENTS.SYMBOL_CHANGE, (symbol) => {
       this._highlightSelected(symbol)
+      this._updateAddButtonVisibility(symbol)
     })
 
     on(EVENTS.PRICES_UPDATE, (data) => {
@@ -117,14 +135,26 @@ export class Watchlist {
           const targetTab = Array.from(this._tabs).find(t => t.dataset.tab === listName)
           if (targetTab) targetTab.classList.add('active')
           
-          this._renderList()
-          this._highlightSelected(get('symbol'))
+          forceSave()
         }
       }
     })
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
+
+  _updateAddButtonVisibility(symbol) {
+    if (!this._btnAddWl) return
+    const wl = get('watchlist')
+    if (!wl || !symbol) return
+    const inCrypto = wl.crypto && wl.crypto.includes(symbol)
+    const inStocks = wl.stocks && wl.stocks.includes(symbol)
+    if (inCrypto || inStocks) {
+      this._btnAddWl.style.display = 'none'
+    } else {
+      this._btnAddWl.style.display = 'flex'
+    }
+  }
 
   /**
    * Build and inject watchlist rows for the active tab.
