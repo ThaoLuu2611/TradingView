@@ -14,7 +14,7 @@ import { SearchBar }       from './ui/searchBar.js'
 import { CompareModal }    from './ui/compareModal.js'
 import { initMobileUI }    from './ui/mobile.js'
 
-import { startCryptoPriceFeed } from './api/coingecko.js'
+import { startCryptoPriceFeed } from './api/binance-feed.js'
 import { startStockPriceFeed }  from './api/yahoo.js'
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileUI()
 
   // 3. Data feeds sau cùng
-  startCryptoPriceFeed()   // CoinGecko, mỗi 30s
+  startCryptoPriceFeed()   // Binance spot, mỗi 30s
   startStockPriceFeed()    // Yahoo Finance, mỗi 60s
 
   // 4. Panel Resizer

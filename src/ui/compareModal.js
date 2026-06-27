@@ -79,7 +79,7 @@ export class CompareModal {
           const toast = document.getElementById('toast')
           if (toast) {
             toast.textContent = `Added ${symbol} to Watchlist`
-            toast.className = 'toast show'
+            toast.className = 'toast success show'
             setTimeout(() => toast.className = 'toast', 2000)
           }
           return // do not close modal or change symbol
@@ -105,7 +105,7 @@ export class CompareModal {
           const toast = document.getElementById('toast')
           if (toast) {
             toast.textContent = `Added ${symbol} to Watchlist`
-            toast.className = 'toast show'
+            toast.className = 'toast success show'
             setTimeout(() => toast.className = 'toast', 2000)
           }
         }

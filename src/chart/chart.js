@@ -296,6 +296,7 @@ class KLineChartWrapper {
         data = await fetchStockOHLCV(symbol, timeframe)
       }
 
+      this._chart.setSymbol(symbol)
       this._chart.applyNewData(data)
       emit(EVENTS.CHART_READY, true)
 

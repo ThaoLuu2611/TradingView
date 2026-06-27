@@ -54,7 +54,7 @@ export async function fetchPrices(symbols) {
 }
 
 /**
- * Starts a price feed that polls CoinGecko every 30 seconds.
+ * Starts a price feed that polls Binance every 30 seconds.
  * Emits EVENTS.PRICES_UPDATE with the latest prices for all crypto symbols.
  * @returns {number} interval ID (can be used with clearInterval)
  */
