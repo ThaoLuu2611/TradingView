@@ -14,6 +14,7 @@ import { Watchlist }       from './ui/watchlist.js'
 import { IndicatorModal }  from './ui/indicatorModal.js'
 import { SearchBar }       from './ui/searchBar.js'
 import { CompareModal }    from './ui/compareModal.js'
+import { AddSymbolModal }  from './ui/addSymbolModal.js'
 import { initMobileUI }    from './ui/mobile.js'
 
 import { startCryptoPriceFeed } from './api/binance-feed.js'
@@ -42,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const watchlist = new Watchlist()
   const indModal  = new IndicatorModal()
   const searchBar = new SearchBar()
-  const compareModal = new CompareModal()
+  const compareModal  = new CompareModal()
+  const addSymModal   = new AddSymbolModal()
 
   navbar.init()
   toolbar.init()
@@ -51,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   indModal.init()
   searchBar.init()
   compareModal.init()
+  addSymModal.init()
 
   initMobileUI()
 

@@ -147,11 +147,13 @@
       <div class="rp-resizer" id="rp-resizer"></div>
       <div class="wl-header">
         <span class="wl-title">Watchlist</span>
-        <div class="wl-header-actions" style="display:flex; align-items:center; gap:8px;">
-          <button id="btn-add-to-wl" class="wl-icon-btn" title="Add current symbol to Watchlist" style="display:none; cursor:pointer; background:none; border:none; color:#787b86;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <div class="wl-header-actions">
+          <button id="btn-add-to-wl" class="wl-icon-btn" title="Add symbol to Watchlist">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#787b86" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <button class="wl-icon-btn" title="Watchlist settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
         </div>
       </div>
       <div class="wl-tabs">
@@ -160,6 +162,28 @@
       </div>
       <div class="wl-list" id="wl-list"></div>
     </div>
+  </div>
+</div>
+
+<!-- ADD SYMBOL MODAL -->
+<div class="add-sym-overlay" id="addSymOverlay">
+  <div class="add-sym-modal">
+    <div class="add-sym-header">
+      <span class="add-sym-title">Add symbol</span>
+      <button class="add-sym-close" id="btn-add-sym-close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="add-sym-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#787b86" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="add-sym-input" placeholder="Symbol or name..." autocomplete="off" />
+    </div>
+    <div class="add-sym-tabs">
+      <button class="add-sym-tab active" data-filter="all">All</button>
+      <button class="add-sym-tab" data-filter="crypto">Crypto</button>
+      <button class="add-sym-tab" data-filter="stock">Stocks</button>
+    </div>
+    <div class="add-sym-list" id="add-sym-list"></div>
   </div>
 </div>
 

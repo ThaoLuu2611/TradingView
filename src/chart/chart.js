@@ -341,10 +341,20 @@ class KLineChartWrapper {
     if (!this._chart) return
     this._chart.setStyles({
       yAxis: {
-        autoScale: true
+        autoScale: true,
+        tickText: { color: '#434651', size: 13, weight: 'normal' }
+      },
+      xAxis: {
+        tickText: { color: '#434651', size: 13, weight: 'normal' }
       },
       crosshair: {
-        mode: 'normal'
+        mode: 'normal',
+        horizontal: { text: { size: 13, color: '#ffffff', backgroundColor: '#131722' } },
+        vertical: { text: { size: 13, color: '#ffffff', backgroundColor: '#131722' } }
+      },
+      indicator: {
+        lastValueMark: { text: { size: 13, weight: 'normal' } },
+        tooltip: { text: { size: 14, color: '#434651', weight: 'normal' } }
       },
       grid: {
         show: true,
@@ -365,6 +375,9 @@ class KLineChartWrapper {
       },
       candle: {
         type: 'candle_solid',
+        tooltip: {
+          text: { size: 14, color: '#434651', weight: 'normal' }
+        },
         bar: {
           upColor:         '#26a69a',
           downColor:       '#ef5350',

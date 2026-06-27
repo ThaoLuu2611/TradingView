@@ -1,4 +1,4 @@
-import { emit, get } from '../store/store.js';
+import { emit, get, on } from '../store/store.js';
 import { EVENTS } from '../store/events.js';
 
 const SYMBOL_TO_ID = {
@@ -63,10 +63,17 @@ export function startCryptoPriceFeed() {
     try {
       const watchlist = get('watchlist');
       const cryptoSymbols = watchlist?.crypto ?? [];
+      const currentSymbol = get('symbol');
+      
+      // Luôn include current symbol nếu nó là crypto (đuôi USDT)
+      let symbolsToFetch = [...cryptoSymbols];
+      if (currentSymbol && currentSymbol.endsWith('USDT') && !symbolsToFetch.includes(currentSymbol)) {
+        symbolsToFetch.push(currentSymbol);
+      }
 
-      if (cryptoSymbols.length === 0) return;
+      if (symbolsToFetch.length === 0) return;
 
-      const prices = await fetchPrices(cryptoSymbols);
+      const prices = await fetchPrices(symbolsToFetch);
       emit(EVENTS.PRICES_UPDATE, prices);
     } catch (err) {
       console.error('[startCryptoPriceFeed] Error fetching crypto prices:', err);
@@ -74,5 +81,7 @@ export function startCryptoPriceFeed() {
   };
 
   poll(); // Immediate first fetch
+  on('state:watchlist', () => poll()); // Fetch ngay khi watchlist thay đổi
+  on(EVENTS.SYMBOL_CHANGE, () => poll()); // Fetch ngay khi chuyển symbol
   return setInterval(poll, 30000);
 }

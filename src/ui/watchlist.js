@@ -10,6 +10,7 @@ export class Watchlist {
   constructor() {
     /** @type {HTMLElement}       */ this._list = null
     /** @type {NodeListOf<Element>} */ this._tabs = null
+    /** @type {Object}            */ this._cachedPrices = {}
   }
 
   init() {
@@ -20,7 +21,6 @@ export class Watchlist {
     // Highlight the initially active symbol
     const currentSymbol = get('symbol')
     this._highlightSelected(currentSymbol)
-    this._updateAddButtonVisibility(currentSymbol)
   }
 
   // ── DOM references ────────────────────────────────────────────────────────
@@ -36,10 +36,7 @@ export class Watchlist {
   _bindEvents() {
     if (this._btnAddWl) {
       this._btnAddWl.addEventListener('click', () => {
-        const symbol = get('symbol')
-        if (symbol) {
-          emit(EVENTS.WATCHLIST_ADD, symbol)
-        }
+        document.dispatchEvent(new CustomEvent('open-add-symbol-modal'))
       })
     }
 
@@ -56,6 +53,7 @@ export class Watchlist {
         // Persist to store and re-render
         set('activeTab', tabKey)
         this._renderList()
+        this._applyPrices()
         this._highlightSelected(get('symbol'))
       })
     })
@@ -92,25 +90,23 @@ export class Watchlist {
   _subscribe() {
     on('state:watchlist', () => {
       this._renderList()
+      this._applyPrices()
       this._highlightSelected(get('symbol'))
-      this._updateAddButtonVisibility(get('symbol'))
     })
 
     on(EVENTS.SYMBOL_CHANGE, (symbol) => {
       this._highlightSelected(symbol)
-      this._updateAddButtonVisibility(symbol)
     })
 
     on(EVENTS.PRICES_UPDATE, (data) => {
       if (!data) return
+      // Cache giá mới nhận được
+      Object.assign(this._cachedPrices, data)
+      // Cập nhật DOM
       for (const [symbol, entry] of Object.entries(data)) {
         const priceEl = document.getElementById(`price-${symbol}`)
         const chgEl   = document.getElementById(`chg-${symbol}`)
-
-        if (priceEl) {
-          priceEl.textContent = formatPrice(entry.price)
-        }
-
+        if (priceEl) priceEl.textContent = formatPrice(entry.price)
         if (chgEl) {
           const pct = entry.change
           chgEl.textContent = formatPercent(pct)
@@ -143,20 +139,7 @@ export class Watchlist {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  _updateAddButtonVisibility(symbol) {
-    if (!this._btnAddWl) return
-    const wl = get('watchlist')
-    if (!wl || !symbol) return
-    const inCrypto = wl.crypto && wl.crypto.includes(symbol)
-    const inStocks = wl.stocks && wl.stocks.includes(symbol)
-    if (inCrypto || inStocks) {
-      this._btnAddWl.style.display = 'none'
-    } else {
-      this._btnAddWl.style.display = 'flex'
-    }
-  }
-
-  /**
+/**
    * Build and inject watchlist rows for the active tab.
    */
   _renderList() {
@@ -188,6 +171,21 @@ export class Watchlist {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+
+  /** Fill giá từ cache sau khi re-render list */
+  _applyPrices() {
+    for (const [symbol, entry] of Object.entries(this._cachedPrices)) {
+      const priceEl = document.getElementById(`price-${symbol}`)
+      const chgEl   = document.getElementById(`chg-${symbol}`)
+      if (priceEl) priceEl.textContent = formatPrice(entry.price)
+      if (chgEl) {
+        const pct = entry.change
+        chgEl.textContent = formatPercent(pct)
+        chgEl.classList.remove('up', 'dn')
+        chgEl.classList.add(pct >= 0 ? 'up' : 'dn')
+      }
+    }
+  }
 
   /**
    * Add .selected to the matching row and remove it from others.

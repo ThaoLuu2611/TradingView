@@ -5,7 +5,7 @@
 // Solution: route through allorigins.win free CORS proxy (no key needed).
 // ---------------------------------------------------------------------------
 
-import { emit, get } from '../store/store.js'
+import { emit, get, on } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 
 // ---------------------------------------------------------------------------
@@ -174,10 +174,18 @@ export function startStockPriceFeed() {
   const poll = async () => {
     try {
       const stocks = get('watchlist')?.stocks ?? []
-      if (stocks.length === 0) return
+      const currentSymbol = get('symbol')
+
+      let stocksToFetch = [...stocks]
+      // Nếu là stock (không có USDT) thì include vào
+      if (currentSymbol && !currentSymbol.endsWith('USDT') && !stocksToFetch.includes(currentSymbol)) {
+        stocksToFetch.push(currentSymbol)
+      }
+
+      if (stocksToFetch.length === 0) return;
 
       const entries = await Promise.allSettled(
-        stocks.map(async (ticker) => {
+        stocksToFetch.map(async (ticker) => {
           const { price, change } = await fetchStockPrice(ticker)
           return [ticker, { price, change }]
         })
@@ -202,5 +210,7 @@ export function startStockPriceFeed() {
   }
 
   poll()                          // fetch ngay lập tức
+  on('state:watchlist', () => poll()) // fetch ngay khi watchlist thay đổi
+  on(EVENTS.SYMBOL_CHANGE, () => poll()) // fetch ngay khi chuyển symbol
   return setInterval(poll, 60000) // rồi mỗi 60s
 }
