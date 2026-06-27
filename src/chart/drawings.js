@@ -171,6 +171,10 @@ class DrawingManager {
     const lastId = this._history.pop()
     this._chart.removeOverlay(lastId)
   }
+
+  setChart(chart) {
+    this._chart = chart
+  }
 }
 
 export const drawingManager = new DrawingManager()

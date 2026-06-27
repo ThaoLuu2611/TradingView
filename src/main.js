@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
   indicatorManager.init(chartWrapper.chart, paneControlManager)
   drawingManager.init(chartWrapper.chart)
 
+  // If chart is recreated (e.g. symbol change), update manager references
+  on(EVENTS.CHART_RECREATED, (newChart) => {
+    indicatorManager.setChart(newChart)
+    drawingManager.setChart(newChart)
+  })
+
   // 2. UI modules — mỗi class tự bindDOM + subscribe
   const navbar   = new Navbar()
   const toolbar  = new Toolbar()

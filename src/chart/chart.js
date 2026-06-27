@@ -55,7 +55,6 @@ class KLineChartWrapper {
     let fakeMouseY = 0
     let lastDistance = null
     let isFakingMouse = false
-    this._firstLoad = true
 
     const dispatchFakePointer = (target, originalEvent, newType, y, buttons) => {
       const init = {
@@ -281,8 +280,7 @@ class KLineChartWrapper {
    * Fetch OHLCV data and push it into the chart.
    * @param {string} symbol
    * @param {string} timeframe
-   */
-  async loadData(symbol, timeframe) {
+    async loadData(symbol, timeframe) {
     if (!this._chart) return
 
     emit(EVENTS.LOADING, true)
@@ -296,53 +294,25 @@ class KLineChartWrapper {
         data = await fetchStockOHLCV(symbol, timeframe)
       }
 
-      // Reset Y-axis auto scale by dispatching a dblclick event to the chart container
-      const container = document.getElementById('chart-container')
-      if (container) {
-        const rect = container.getBoundingClientRect()
-        const dblclick = new MouseEvent('dblclick', {
-          clientX: rect.left + rect.width / 2,
-          clientY: rect.top + rect.height / 2,
-          bubbles: true,
-          cancelable: true
-        })
-        container.dispatchEvent(dblclick)
+      // Recreate chart to reset Y-axis scale if symbol changes
+      // This is the ONLY 100% reliable way to force KLineCharts to re-enable Auto Scale
+      // after the user has manually panned the chart vertically (which disables Auto Scale).
+      if (this._lastSymbol && this._lastSymbol !== symbol) {
+        const container = document.getElementById('chart-container')
+        if (container) {
+          window.klinecharts.dispose('chart-container')
+          this._chart = window.klinecharts.init('chart-container')
+          this._applyStyles()
+          this.setChartType(get('chartType') || 'candle')
+          
+          // Notify managers (indicators, drawings) that the chart instance has changed
+          emit(EVENTS.CHART_RECREATED, this._chart)
+        }
       }
+      this._lastSymbol = symbol
 
       this._chart.applyNewData(data)
       emit(EVENTS.CHART_READY, true)
-
-      // Fake Y-axis drag on first load to unlock vertical panning
-      if (this._firstLoad) {
-        this._firstLoad = false
-        setTimeout(() => {
-          try {
-            const el = document.getElementById('chart-container')
-            if (el) {
-              const rect = el.getBoundingClientRect()
-              const yAxisX = rect.right - 20
-              const yStart = rect.top + 100
-              const target = document.elementFromPoint(yAxisX, yStart) || el
-              
-              const downOpts = { bubbles: true, clientX: yAxisX, clientY: yStart, button: 0, buttons: 1, isPrimary: true, pointerId: 1, view: window }
-              target.dispatchEvent(new PointerEvent('pointerdown', downOpts))
-              target.dispatchEvent(new MouseEvent('mousedown', downOpts))
-              
-              const moveOpts = { bubbles: true, clientX: yAxisX, clientY: yStart + 50, button: 0, buttons: 1, isPrimary: true, pointerId: 1, view: window }
-              target.dispatchEvent(new PointerEvent('pointermove', moveOpts))
-              document.dispatchEvent(new PointerEvent('pointermove', moveOpts))
-              target.dispatchEvent(new MouseEvent('mousemove', moveOpts))
-              document.dispatchEvent(new MouseEvent('mousemove', moveOpts))
-              
-              const upOpts = { bubbles: true, clientX: yAxisX, clientY: yStart + 50, button: 0, buttons: 0, isPrimary: true, pointerId: 1, view: window }
-              target.dispatchEvent(new PointerEvent('pointerup', upOpts))
-              document.dispatchEvent(new PointerEvent('pointerup', upOpts))
-              target.dispatchEvent(new MouseEvent('mouseup', upOpts))
-              document.dispatchEvent(new MouseEvent('mouseup', upOpts))
-            }
-          } catch(e) {}
-        }, 800)
-      }
 
     } catch (err) {
       console.error('[KLineChartWrapper] loadData error:', err)

@@ -15,5 +15,6 @@ export const EVENTS = {
   COMPARE_ADD:      'compare:add',
   WATCHLIST_ADD:    'watchlist:add',
   CHART_READY:      'chart:ready',
+  CHART_RECREATED:  'chart:recreated',
   BEFORE_SAVE:      'app:before_save',
 }

@@ -62,15 +62,22 @@ class IndicatorManager {
     // Wait for the first data to load so CSS grid layout settles and chart allocates height
     let initialized = false
     on(EVENTS.CHART_READY, () => {
-      if (!initialized) {
-        initialized = true
-        // Give KLineChart's internal layout engine a moment to update pane dimensions
-        setTimeout(() => {
-          this._initFromStore()
-        }, 150)
-      }
+      // Give KLineChart's internal layout engine a moment to update pane dimensions
+      setTimeout(() => {
+        this._initFromStore()
+      }, 150)
     })
 
+  }
+
+  /** Reload indicators from store state (useful when chart is recreated) */
+  reload() {
+    this._initFromStore()
+  }
+
+  /** Update chart instance if chart is recreated */
+  setChart(chart) {
+    this._chart = chart
   }
 
   /** Add indicators from store state on first load */
