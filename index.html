@@ -8,20 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
   <script src="https://cdn.jsdelivr.net/npm/klinecharts@9/dist/klinecharts.min.js"></script>
-  <script>
-    (function(){
-      function sendLog(type, args) {
-        const msg = `[${type}] ` + Array.from(args).map(x => (typeof x === 'object' ? JSON.stringify(x) : x)).join(' ');
-        fetch('http://localhost:8081', { method: 'POST', body: msg }).catch(()=>{});
-      }
-      const _log = console.log;
-      console.log = function() { sendLog('LOG', arguments); _log.apply(console, arguments); };
-      const _err = console.error;
-      console.error = function() { sendLog('ERR', arguments); _err.apply(console, arguments); };
-      const _warn = console.warn;
-      console.warn = function() { sendLog('WARN', arguments); _warn.apply(console, arguments); };
-    })();
-  </script>
 </head>
 <body>
 <div id="app">
@@ -223,34 +209,6 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script>
-// DEBUG OVERLAY — xoá sau khi fix xong
-;(function(){
-  const box = document.createElement('div')
-  box.id = '__dbg'
-  Object.assign(box.style, {
-    position:'fixed', bottom:'0', left:'0', right:'0', maxHeight:'40vh',
-    overflowY:'auto', background:'#1a1a2e', color:'#e94560', fontFamily:'monospace',
-    fontSize:'11px', padding:'8px', zIndex:'99999', display:'none',
-    borderTop:'2px solid #e94560', whiteSpace:'pre-wrap', wordBreak:'break-all'
-  })
-  document.body.appendChild(box)
-
-  function log(type, msg) {
-    box.style.display = 'block'
-    box.textContent += `[${type}] ${msg}\n`
-    box.scrollTop = box.scrollHeight
-  }
-
-  window.addEventListener('error', e => log('ERROR', `${e.message} @ ${e.filename}:${e.lineno}`))
-  window.addEventListener('unhandledrejection', e => log('PROMISE', e.reason?.stack || e.reason))
-
-  const _err = console.error.bind(console)
-  console.error = (...a) => { log('console.error', a.join(' ')); _err(...a) }
-  const _warn = console.warn.bind(console)
-  console.warn = (...a) => { log('console.warn', a.join(' ')); _warn(...a) }
-})()
-</script>
 <script type="module" src="src/main.js"></script>
 </body>
 </html>
