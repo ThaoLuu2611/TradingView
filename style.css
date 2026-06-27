@@ -341,3 +341,26 @@ div[style*="position: relative"]:hover > .pane-controls {
   width: 14px;
   height: 14px;
 }
+
+/* Compare Add to Watchlist Button */
+.compare-add-wl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  color: #b2b5be;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s, color 0.2s;
+  margin-left: 8px;
+}
+.compare-row:hover .compare-add-wl,
+.search-drop-item:hover .search-add-wl {
+  opacity: 1;
+}
+.compare-add-wl:hover {
+  background: #2962ff;
+  color: #fff;
+}

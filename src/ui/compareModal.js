@@ -68,8 +68,24 @@ export class CompareModal {
       this._compareList.addEventListener('click', (e) => {
         const row = e.target.closest('.compare-row')
         if (!row) return
-
+        
         const symbol = row.querySelector('.compare-sym-name').innerText
+
+        // If clicked on the add to watchlist button
+        if (e.target.closest('.compare-add-wl')) {
+          import('../store/store.js').then(({ emit }) => {
+            emit(EVENTS.WATCHLIST_ADD, symbol)
+          })
+          const toast = document.getElementById('toast')
+          if (toast) {
+            toast.textContent = `Added ${symbol} to Watchlist`
+            toast.className = 'toast show'
+            setTimeout(() => toast.className = 'toast', 2000)
+          }
+          return // do not close modal or change symbol
+        }
+
+        // Normal row click -> change symbol
         import('../store/store.js').then(({ emit }) => {
           emit(EVENTS.SYMBOL_CHANGE, symbol)
         })
@@ -138,6 +154,9 @@ export class CompareModal {
             <div class="compare-source">
               <div class="cse-name">${item.type === 'crypto' ? 'Binance' : 'NASDAQ'}</div>
               <div class="cse-type">${item.type === 'crypto' ? 'spot' : 'stock'}</div>
+            </div>
+            <div class="compare-add-wl" title="Add to Watchlist">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </div>
           </div>
         `

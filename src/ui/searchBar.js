@@ -114,14 +114,32 @@ export class SearchBar {
 
     // Delegated click on dropdown items
     this._drop.addEventListener('click', (e) => {
-      const item = e.target.closest('.search-drop-item')
-      if (!item) return
-      const symbol = item.dataset.symbol
-      if (symbol) {
-        emit(EVENTS.SYMBOL_CHANGE, symbol)
-        this._input.value = ''
-        this._closeDrop()
+      const row = e.target.closest('.search-drop-item')
+      if (!row) return
+
+      const symbol = row.dataset.symbol
+      if (!symbol) return
+
+      // If clicked on Add to Watchlist button
+      if (e.target.closest('.search-add-wl')) {
+        import('../store/store.js').then(({ emit }) => {
+          emit(EVENTS.WATCHLIST_ADD, symbol)
+        })
+        const toast = document.getElementById('toast')
+        if (toast) {
+          toast.textContent = `Added ${symbol} to Watchlist`
+          toast.className = 'toast show'
+          setTimeout(() => toast.className = 'toast', 2000)
+        }
+        return // don't close drop or change symbol
       }
+
+      // Normal click -> change symbol
+      import('../store/store.js').then(({ emit }) => {
+        emit(EVENTS.SYMBOL_CHANGE, symbol)
+      })
+      this._input.value = ''
+      this._closeDrop()
     })
 
     // Close when clicking outside the search-box
@@ -187,6 +205,9 @@ export class SearchBar {
         <span class="sd-sym">${item.symbol}</span>
         <span class="sd-name">${item.name}</span>
         <span class="search-badge ${badgeClass}">${badgeLabel}</span>
+        <div class="compare-add-wl search-add-wl" title="Add to Watchlist">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
       </div>`
   }
 
