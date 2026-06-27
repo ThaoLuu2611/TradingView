@@ -49,26 +49,22 @@ class KLineChartWrapper {
 
     this._chart = window.klinecharts.init(el)
 
-    // --- Mobile Full Touch Support (Pan, Zoom, Crosshair) ---
+    // --- Mobile Y-Axis Drag & Pinch Fix ---
+    // Expand Y-axis touch hitbox and support both 1-finger drag and 2-finger pinch on the Y-axis.
     const activePointers = new Map()
-    let fakeMouseX = 0
     let fakeMouseY = 0
-    let startX = 0
-    let startY = 0
     let lastDistance = null
     let isFakingMouse = false
-    let isPinching = false
-    let isHovering = false
-    let isRightEdge = false
-    let longPressTimeout = null
 
-    const dispatchFakePointer = (target, originalEvent, newType, x, y, buttons) => {
+    const dispatchFakePointer = (target, originalEvent, newType, y, buttons) => {
       const init = {
         bubbles: true, cancelable: true,
-        clientX: x, clientY: y,
-        screenX: x, screenY: y,
-        button: buttons === 1 ? 0 : -1, buttons: buttons,
-        pointerId: 1, pointerType: 'mouse', isPrimary: true
+        clientX: originalEvent.clientX, clientY: y,
+        screenX: originalEvent.screenX, screenY: y,
+        button: 0, buttons: buttons,
+        pointerId: 1, // use a fake pointer id
+        pointerType: 'mouse',
+        isPrimary: true
       }
       target.dispatchEvent(new PointerEvent(newType, init))
       target.dispatchEvent(new MouseEvent(newType.replace('pointer', 'mouse'), init))
@@ -77,111 +73,47 @@ class KLineChartWrapper {
     el.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'touch' || e.pointerType === 'pen') {
         const rect = el.getBoundingClientRect()
-        const onRightEdge = e.clientX - rect.left > rect.width - 70
+        // If touch is within 70px of the right edge
+        if (e.clientX - rect.left > rect.width - 70) {
+          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY, lastY: e.clientY })
+          e.stopPropagation()
+          e.preventDefault()
 
-        if (activePointers.size === 0) {
-          isRightEdge = onRightEdge
-        }
-
-        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
-        e.stopPropagation()
-        e.preventDefault()
-
-        if (activePointers.size === 1) {
-          isFakingMouse = true
-          isPinching = false
-          isHovering = false
-          fakeMouseX = e.clientX
-          fakeMouseY = e.clientY
-          startX = e.clientX
-          startY = e.clientY
-
-          dispatchFakePointer(e.target, e, 'pointerdown', fakeMouseX, fakeMouseY, 1)
-
-          // Long press detection for crosshair
-          if (longPressTimeout) clearTimeout(longPressTimeout)
-          longPressTimeout = setTimeout(() => {
-            if (activePointers.size === 1 && isFakingMouse) {
-              // Release the drag
-              dispatchFakePointer(el, e, 'pointerup', fakeMouseX, fakeMouseY, 0)
-              isFakingMouse = false
-              isHovering = true
-              // Start hovering to show crosshair
-              dispatchFakePointer(el, e, 'pointermove', fakeMouseX, fakeMouseY, 0)
-            }
-          }, 400)
-        } else if (activePointers.size === 2) {
-          if (longPressTimeout) clearTimeout(longPressTimeout)
-          if (isFakingMouse) {
-            isFakingMouse = false
-            dispatchFakePointer(e.target, e, 'pointerup', fakeMouseX, fakeMouseY, 0)
-          }
-          if (isHovering) {
-            isHovering = false
-            dispatchFakePointer(e.target, e, 'pointerleave', fakeMouseX, fakeMouseY, 0)
-          }
-          
-          isPinching = true
-          const pts = Array.from(activePointers.values())
-          lastDistance = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
-          
-          if (isRightEdge) {
-            fakeMouseX = rect.right - 10
-            fakeMouseY = (pts[0].y + pts[1].y) / 2
-            dispatchFakePointer(el, e, 'pointerdown', fakeMouseX, fakeMouseY, 1)
+          if (activePointers.size === 1) {
+            isFakingMouse = true
+            fakeMouseY = e.clientY
+            dispatchFakePointer(e.target, e, 'pointerdown', fakeMouseY, 1)
+          } else if (activePointers.size === 2) {
+            const pts = Array.from(activePointers.values())
+            lastDistance = Math.abs(pts[0].y - pts[1].y)
           }
         }
       }
     }, { capture: true })
 
     el.addEventListener('pointermove', (e) => {
-      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
-        if (!activePointers.has(e.pointerId)) return
+      if (activePointers.has(e.pointerId)) {
         const ptr = activePointers.get(e.pointerId)
+        const dy = e.clientY - ptr.lastY
         ptr.x = e.clientX
         ptr.y = e.clientY
+        ptr.lastY = e.clientY
         
         e.stopPropagation()
         if (e.cancelable) e.preventDefault()
 
         if (activePointers.size === 1) {
-          fakeMouseX = e.clientX
-          fakeMouseY = e.clientY
-
-          // Cancel long press if moved too much
-          if (longPressTimeout) {
-            if (Math.hypot(fakeMouseX - startX, fakeMouseY - startY) > 10) {
-              clearTimeout(longPressTimeout)
-              longPressTimeout = null
-            }
-          }
-
-          if (isFakingMouse) {
-            dispatchFakePointer(e.target, e, 'pointermove', fakeMouseX, fakeMouseY, 1)
-          } else if (isHovering) {
-            dispatchFakePointer(e.target, e, 'pointermove', fakeMouseX, fakeMouseY, 0)
-          }
-        } else if (activePointers.size === 2 && isPinching) {
+          fakeMouseY += dy
+          dispatchFakePointer(e.target, e, 'pointermove', fakeMouseY, 1)
+        } else if (activePointers.size === 2) {
           const pts = Array.from(activePointers.values())
-          const currentDistance = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
+          const currentDistance = Math.abs(pts[0].y - pts[1].y)
           if (lastDistance !== null) {
             const diff = currentDistance - lastDistance
-            
-            if (isRightEdge) {
-              fakeMouseY += diff
-              dispatchFakePointer(el, e, 'pointermove', fakeMouseX, fakeMouseY, 1)
-            } else {
-              const centerX = (pts[0].x + pts[1].x) / 2
-              const centerY = (pts[0].y + pts[1].y) / 2
-              const wheelEvent = new WheelEvent('wheel', {
-                deltaY: -diff * 3,
-                clientX: centerX,
-                clientY: centerY,
-                bubbles: true,
-                cancelable: true
-              })
-              el.dispatchEvent(wheelEvent)
-            }
+            // Spread (+) -> fakeMouseY increases (simulating dragging price scale down -> zoom in)
+            // Pinch (-) -> fakeMouseY decreases (simulating dragging price scale up -> zoom out)
+            fakeMouseY += diff
+            dispatchFakePointer(e.target, e, 'pointermove', fakeMouseY, 1)
           }
           lastDistance = currentDistance
         }
@@ -189,46 +121,22 @@ class KLineChartWrapper {
     }, { capture: true, passive: false })
 
     const endPointer = (e) => {
-      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
-        if (activePointers.has(e.pointerId)) {
-          activePointers.delete(e.pointerId)
-          e.stopPropagation()
-          
-          if (longPressTimeout) {
-            clearTimeout(longPressTimeout)
-            longPressTimeout = null
-          }
-          
-          if (activePointers.size === 1) {
-            isPinching = false
-            const ptr = Array.from(activePointers.values())[0]
-            fakeMouseX = ptr.x
-            fakeMouseY = ptr.y
-            isFakingMouse = true
-            dispatchFakePointer(e.target, e, 'pointerdown', fakeMouseX, fakeMouseY, 1)
-          } else if (activePointers.size === 0) {
-            if (isFakingMouse || isRightEdge) {
-              dispatchFakePointer(e.target, e, e.type === 'pointercancel' ? 'pointercancel' : 'pointerup', fakeMouseX, fakeMouseY, 0)
-            }
-            if (isHovering) {
-              dispatchFakePointer(e.target, e, 'pointerleave', fakeMouseX, fakeMouseY, 0)
-            }
-            isFakingMouse = false
-            isPinching = false
-            isHovering = false
-            isRightEdge = false
-          }
+      if (activePointers.has(e.pointerId)) {
+        activePointers.delete(e.pointerId)
+        e.stopPropagation()
+        
+        if (activePointers.size === 1) {
+          lastDistance = null
+        } else if (activePointers.size === 0 && isFakingMouse) {
+          isFakingMouse = false
+          lastDistance = null
+          const upType = e.type === 'pointercancel' ? 'pointercancel' : 'pointerup'
+          dispatchFakePointer(e.target, e, upType, fakeMouseY, 0)
         }
       }
     }
     el.addEventListener('pointerup', endPointer, { capture: true })
     el.addEventListener('pointercancel', endPointer, { capture: true })
-
-    const stopTouch = (e) => { e.stopPropagation(); if (e.cancelable) e.preventDefault() }
-    el.addEventListener('touchstart', stopTouch, { capture: true, passive: false })
-    el.addEventListener('touchmove', stopTouch, { capture: true, passive: false })
-    el.addEventListener('touchend', stopTouch, { capture: true, passive: false })
-    el.addEventListener('touchcancel', stopTouch, { capture: true, passive: false })
     // ------------------------------
 
     // KLineChart v9: use setStyles() instead of setStyleOptions()
