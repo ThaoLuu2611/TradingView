@@ -3,11 +3,11 @@
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_INDICATORS = {
-  MA: { enabled: true, calcParams: [7, 25, 99], lines: [{ period: 7, color: '#fcc201', enabled: true }, { period: 25, color: '#e83d8c', enabled: true }, { period: 99, color: '#9b7ef6', enabled: true }] },
-  EMA: { enabled: false, calcParams: [7, 25, 99], lines: [{ period: 7, color: '#fcc201', enabled: true }, { period: 25, color: '#e83d8c', enabled: true }, { period: 99, color: '#9b7ef6', enabled: true }] },
+  MA: { enabled: false, calcParams: [7, 25, 99], lines: [{ period: 7, color: '#fcc201', enabled: true }, { period: 25, color: '#e83d8c', enabled: true }, { period: 99, color: '#9b7ef6', enabled: true }] },
+  EMA: { enabled: true, calcParams: [34, 89, 200], lines: [{ period: 34, color: '#fcc201', enabled: true }, { period: 89, color: '#e83d8c', enabled: true }, { period: 200, color: '#9b7ef6', enabled: true }] },
   BB: { enabled: false, calcParams: [20, 2], lines: [{ period: 20, color: '#9b7ef6', enabled: true }, { period: 20, color: '#fcc201', enabled: true }, { period: 20, color: '#e83d8c', enabled: true }] },
-  RSI: { enabled: false, calcParams: [14], lines: [{ period: 14, color: '#9c27b0', enabled: true }] },
-  MACD: { enabled: false, calcParams: [12, 26, 9], lines: [{ period: 12, color: '#e83d8c', enabled: true }, { period: 26, color: '#2962ff', enabled: true }] },
+  RSI: { enabled: true, calcParams: [14], lines: [{ period: 14, color: '#9c27b0', enabled: true }] },
+  MACD: { enabled: true, calcParams: [12, 26, 9], lines: [{ period: 12, color: '#e83d8c', enabled: true }, { period: 26, color: '#2962ff', enabled: true }] },
   KDJ: { enabled: false, calcParams: [9, 3, 3], lines: [{ period: 9, color: '#fcc201', enabled: true }, { period: 3, color: '#e83d8c', enabled: true }, { period: 3, color: '#9b7ef6', enabled: true }] },
   WR: { enabled: false, calcParams: [14], lines: [{ period: 14, color: '#ff9800', enabled: true }] },
   StochRSI: { enabled: false, calcParams: [14, 14, 3, 3], lines: [{ period: 14, color: '#2962ff', enabled: true }, { period: 14, color: '#00bcd4', enabled: true }] },
