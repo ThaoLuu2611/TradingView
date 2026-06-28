@@ -273,7 +273,50 @@ class KLineChartWrapper {
       this._chart.setPriceVolumePrecision(pricePrec, 2)
       this._chart.setStyles({ yAxis: { autoScale: true } })
 
+      // 1. Lưu lại mốc thời gian (timestamp) của nến đang hiển thị ở lề phải trước khi đổi mã
+      let targetTimestamp = null
+      let currentBarSpace = 6
+      if (this._chart && typeof this._chart.getDataList === 'function' && typeof this._chart.getVisibleRange === 'function') {
+        try {
+          const oldData = this._chart.getDataList()
+          const range = this._chart.getVisibleRange()
+          if (oldData && oldData.length > 0 && range && range.to > 0) {
+            // Lấy nến ở sát mép phải màn hình nhất (range.to thường là index bên ngoài màn hình 1 chút, ta lùi lại 1)
+            const rightIndex = Math.min(range.to - 1, oldData.length - 1)
+            if (oldData[rightIndex]) {
+              targetTimestamp = oldData[rightIndex].timestamp
+            }
+          }
+          if (typeof this._chart.getBarSpace === 'function') {
+            currentBarSpace = this._chart.getBarSpace() || 6
+          }
+        } catch (e) {
+          console.warn('Could not save scroll state:', e)
+        }
+      }
+
       this._chart.applyNewData(data)
+
+      // 2. Phục hồi lại đúng mốc thời gian đó cho mã mới (nếu có)
+      if (targetTimestamp && data && data.length > 0 && typeof this._chart.setOffsetRightDistance === 'function') {
+        // Tìm index của nến trong mã mới có thời gian gần nhất với targetTimestamp
+        // Vì data được sắp xếp tăng dần theo thời gian, ta tìm ngược từ cuối lên
+        let newIndex = data.length - 1
+        for (let i = data.length - 1; i >= 0; i--) {
+          if (data[i].timestamp <= targetTimestamp) {
+            newIndex = i
+            break
+          }
+        }
+        
+        // Tính toán khoảng cách (pixel) từ nến đó đến lề phải dữ liệu
+        const candlesFromRight = (data.length - 1) - newIndex
+        
+        // Bù trừ thêm một khoảng gap mặc định nếu nến gốc vốn dĩ đã cách lề phải một đoạn
+        // Ở đây ta cứ ép nó nằm sát lề (offset = số nến * độ rộng nến)
+        const offsetPx = candlesFromRight * currentBarSpace
+        this._chart.setOffsetRightDistance(offsetPx)
+      }
 
       emit(EVENTS.CHART_READY, true)
 
