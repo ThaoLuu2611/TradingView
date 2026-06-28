@@ -278,6 +278,11 @@ class KLineChartWrapper {
         this._chart.setBarSpace(6)
       }
 
+      // Xóa sạch dữ liệu cũ để ép biểu đồ reset lại vị trí cuộn (scroll position)
+      if (typeof this._chart.clearData === 'function') {
+        this._chart.clearData()
+      }
+
       this._chart.applyNewData(data)
       
       // Ensure the chart scrolls to the latest data but leaves a small margin (e.g. 50px) on the right
