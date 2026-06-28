@@ -52,7 +52,102 @@ class KLineChartWrapper {
     }
 
     this._chart = window.klinecharts.init(el)
-    
+
+    // --- Mobile Y-Axis Drag & Pinch Fix ---
+    // KLineChart v9 natively fails to set _yAxisStartScaleDistance on touchStartEvent, breaking Y-axis drag.
+    // This hack intercepts touch on the Y-axis (right 70px) and converts it to mouse events to fix it.
+    const activePointers = new Map()
+    let fakeMouseY = 0
+    let lastDistance = null
+    let isFakingMouse = false
+
+    const dispatchFakePointer = (target, originalEvent, newType, y, buttons) => {
+      const init = {
+        bubbles: true, cancelable: true,
+        clientX: originalEvent.clientX, clientY: y,
+        screenX: originalEvent.screenX, screenY: y,
+        button: 0, buttons: buttons,
+        pointerId: 1, pointerType: 'mouse', isPrimary: true
+      }
+      target.dispatchEvent(new PointerEvent(newType, init))
+      target.dispatchEvent(new MouseEvent(newType.replace('pointer', 'mouse'), init))
+    }
+
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+        if (e.target.closest('.pane-controls') || e.target.closest('.pc-btn')) return
+        
+        const rect = el.getBoundingClientRect()
+        if (e.clientX - rect.left > rect.width - 70) {
+          // Manually activate the pane so indicator controls show up even when touching the Y-axis
+          const pane = e.target.closest('.custom-pane-container') || e.target.closest('[id^="pane_"]')
+          if (pane) {
+            document.querySelectorAll('.custom-pane-container.active-pane').forEach(el => el.classList.remove('active-pane'))
+            pane.classList.add('active-pane')
+          }
+
+          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY, lastY: e.clientY })
+          e.stopPropagation()
+          e.preventDefault()
+
+          if (activePointers.size === 1) {
+            isFakingMouse = true
+            fakeMouseY = e.clientY
+            dispatchFakePointer(e.target, e, 'pointerdown', fakeMouseY, 1)
+          } else if (activePointers.size === 2) {
+            const pts = Array.from(activePointers.values())
+            lastDistance = Math.abs(pts[0].y - pts[1].y)
+          }
+        }
+      }
+    }, { capture: true })
+
+    el.addEventListener('pointermove', (e) => {
+      if (activePointers.has(e.pointerId)) {
+        const ptr = activePointers.get(e.pointerId)
+        const dy = e.clientY - ptr.lastY
+        ptr.x = e.clientX
+        ptr.y = e.clientY
+        ptr.lastY = e.clientY
+        
+        e.stopPropagation()
+        if (e.cancelable) e.preventDefault()
+
+        if (activePointers.size === 1) {
+          fakeMouseY += dy
+          dispatchFakePointer(e.target, e, 'pointermove', fakeMouseY, 1)
+        } else if (activePointers.size === 2) {
+          const pts = Array.from(activePointers.values())
+          const currentDistance = Math.abs(pts[0].y - pts[1].y)
+          if (lastDistance !== null) {
+            const diff = currentDistance - lastDistance
+            fakeMouseY += diff
+            dispatchFakePointer(e.target, e, 'pointermove', fakeMouseY, 1)
+          }
+          lastDistance = currentDistance
+        }
+      }
+    }, { capture: true, passive: false })
+
+    const endPointer = (e) => {
+      if (activePointers.has(e.pointerId)) {
+        activePointers.delete(e.pointerId)
+        e.stopPropagation()
+        
+        if (activePointers.size === 1) {
+          lastDistance = null
+        } else if (activePointers.size === 0 && isFakingMouse) {
+          isFakingMouse = false
+          lastDistance = null
+          const upType = e.type === 'pointercancel' ? 'pointercancel' : 'pointerup'
+          dispatchFakePointer(e.target, e, upType, fakeMouseY, 0)
+        }
+      }
+    }
+    el.addEventListener('pointerup', endPointer, { capture: true })
+    el.addEventListener('pointercancel', endPointer, { capture: true })
+    // ------------------------------
+
     // --- Mobile Vertical Panning Fix ---
     // KLineChart v9 natively handles horizontal pan on touch, but ignores vertical pan.
     // We seamlessly inject vertical panning by computing the Y-axis extremum and forcing a redraw.
