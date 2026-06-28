@@ -53,6 +53,73 @@ class KLineChartWrapper {
 
     this._chart = window.klinecharts.init(el)
     
+    // --- Mobile Vertical Panning Fix ---
+    // KLineChart v9 natively handles horizontal pan on touch, but ignores vertical pan.
+    // We seamlessly inject vertical panning by computing the Y-axis extremum and forcing a redraw.
+    let panStartY = null
+    let panStartExtremum = null
+    let isVerticalPanning = false
+    let panYAxis = null
+
+    el.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        // If touch is on the right scale (Y-axis), KLineChart handles the native Y-axis drag.
+        const rect = el.getBoundingClientRect()
+        if (e.touches[0].clientX - rect.left > rect.width - 70) {
+          isVerticalPanning = false
+          return
+        }
+
+        try {
+          const pane = this._chart.getDrawPaneById('candle_pane')
+          if (pane && typeof pane.getAxisComponent === 'function') {
+            panYAxis = pane.getAxisComponent()
+            // Only allow vertical panning if the Y-axis is explicitly unlocked
+            if (panYAxis && !panYAxis.getAutoCalcTickFlag() && panYAxis.getScrollZoomEnabled()) {
+              panStartY = e.touches[0].clientY
+              const ext = panYAxis.getExtremum()
+              panStartExtremum = { min: ext.min, max: ext.max, range: ext.range }
+              isVerticalPanning = true
+            } else {
+              isVerticalPanning = false
+            }
+          }
+        } catch (err) {}
+      } else {
+        isVerticalPanning = false
+      }
+    }, { capture: true, passive: true })
+
+    el.addEventListener('touchmove', (e) => {
+      if (isVerticalPanning && e.touches.length === 1 && panYAxis && panStartExtremum) {
+        try {
+          const pane = this._chart.getDrawPaneById('candle_pane')
+          if (!pane) return
+          
+          const height = pane.getBounding().height
+          // Distance dragging down means looking higher up the chart
+          const distance = panStartY - e.touches[0].clientY
+          
+          const scale = distance / height
+          const difRange = panStartExtremum.range * scale
+          
+          const newMin = panStartExtremum.min + difRange
+          const newMax = panStartExtremum.max + difRange
+          
+          panYAxis.setExtremum({
+            min: newMin,
+            max: newMax,
+            range: newMax - newMin,
+            realMin: panYAxis.convertToRealValue(newMin),
+            realMax: panYAxis.convertToRealValue(newMax),
+            realRange: panYAxis.convertToRealValue(newMax) - panYAxis.convertToRealValue(newMin)
+          })
+          
+          // Force an instant redraw so vertical panning is visible immediately
+          this._chart.setStyles({})
+        } catch (err) {}
+      }
+    }, { capture: true, passive: true })
     // ------------------------------
 
 
