@@ -307,6 +307,12 @@ class KLineChartWrapper {
         }
       }
 
+      // 1.5 Xóa sạch dữ liệu cũ để ép biểu đồ reset lại các zoom Y-axis (tránh bị kẹt scale của mã cũ)
+      // Mặc dù gọi clearData, ta vẫn có thể khôi phục lại vị trí X nhờ biến targetPhysicalDistance đã lưu ở trên
+      if (typeof this._chart.clearData === 'function') {
+        this._chart.clearData()
+      }
+
       this._chart.applyNewData(data)
 
       // 2. Phục hồi lại đúng mốc thời gian đó cho mã mới ở vị trí vật lý y hệt
