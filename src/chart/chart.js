@@ -312,6 +312,17 @@ class KLineChartWrapper {
       if (typeof this._chart.clearData === 'function') {
         this._chart.clearData()
       }
+      
+      // Force reset Y-axis manual zoom in KLineChart v9
+      try {
+        const pane = this._chart.getDrawPaneById('candle_pane')
+        if (pane && typeof pane.getAxisComponent === 'function') {
+          const yAxis = pane.getAxisComponent()
+          if (yAxis && typeof yAxis.setAutoCalcTickFlag === 'function') {
+            yAxis.setAutoCalcTickFlag(true)
+          }
+        }
+      } catch (e) {}
 
       this._chart.applyNewData(data)
 
