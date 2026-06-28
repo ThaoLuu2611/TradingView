@@ -273,6 +273,11 @@ class KLineChartWrapper {
       this._chart.setPriceVolumePrecision(pricePrec, 2)
       this._chart.setStyles({ yAxis: { autoScale: true } })
 
+      // Khôi phục mức zoom (độ rộng nến) về chuẩn để tránh bị kẹt zoom-out từ coin cũ
+      if (typeof this._chart.setBarSpace === 'function') {
+        this._chart.setBarSpace(6)
+      }
+
       this._chart.applyNewData(data)
       
       // Ensure the chart scrolls to the latest data on the right
