@@ -30,6 +30,9 @@ class KLineChartWrapper {
 
     /** @type {string} */
     this._timeframe = get('timeframe') ?? '1D'
+
+    /** @type {number} */
+    this._fetchId = 0
   }
 
   // -------------------------------------------------------------------------
@@ -242,6 +245,7 @@ class KLineChartWrapper {
   async loadData(symbol, timeframe) {
     if (!this._chart) return
 
+    const fetchId = ++this._fetchId
     emit(EVENTS.LOADING, true)
 
     try {
@@ -253,7 +257,27 @@ class KLineChartWrapper {
         data = await fetchStockOHLCV(symbol, timeframe)
       }
 
+      // Ignore stale responses if user clicked another symbol while fetching
+      if (this._fetchId !== fetchId) return
+
+      // Detect precision dynamically based on latest price
+      let pricePrec = 2
+      if (data && data.length > 0) {
+        const lastClose = data[data.length - 1].close
+        if (lastClose < 0.1) pricePrec = 6
+        else if (lastClose < 1) pricePrec = 5
+        else if (lastClose < 50) pricePrec = 4
+      }
+
+      // Reset Y-axis scale and precision to avoid locking into a previous symbol's scale
+      this._chart.setPriceVolumePrecision(pricePrec, 2)
+      this._chart.setStyles({ yAxis: { autoScale: true } })
+
       this._chart.applyNewData(data)
+      
+      // Ensure the chart scrolls to the latest data on the right
+      this._chart.setOffsetRightDistance(0)
+
       emit(EVENTS.CHART_READY, true)
 
     } catch (err) {
