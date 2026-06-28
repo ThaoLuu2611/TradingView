@@ -16,6 +16,10 @@ export class PaneControlManager {
   init(chart) {
     this._chart = chart
     setTimeout(() => this.attach('candle_pane', 'Main'), 100)
+    
+    // Bulletproof fallback: Constantly ensure controls are in the DOM and on top
+    if (this._rebuildInterval) clearInterval(this._rebuildInterval)
+    this._rebuildInterval = setInterval(() => this.rebuildAll(), 1000)
   }
 
   attach(paneId, name, config = {}) {
@@ -34,8 +38,13 @@ export class PaneControlManager {
       paneDom.style.position = 'relative'
       paneDom.classList.add('custom-pane-container')
 
-      // If controls already exist and are in the DOM, do nothing further (avoid duplicates)
-      if (paneDom.querySelector('.pane-controls')) {
+      // If controls already exist and are in the DOM, move them to the end to ensure they sit on top!
+      const existingControls = paneDom.querySelector('.pane-controls')
+      if (existingControls) {
+        // Only append (move) if it's not already the last child, so we don't break active hover states
+        if (paneDom.lastElementChild !== existingControls) {
+          paneDom.appendChild(existingControls)
+        }
         return
       }
 
