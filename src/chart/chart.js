@@ -5,6 +5,7 @@
 // KLineChart is loaded via CDN <script> tag — available as window.klinecharts
 import { on, emit, get } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
+import { paneControlManager } from '../ui/paneControls.js'
 import { fetchOHLCV } from '../api/binance.js'
 import { fetchStockOHLCV } from '../api/bitget-feed.js'
 
@@ -326,6 +327,14 @@ class KLineChartWrapper {
       } catch (e) {}
 
       this._chart.applyNewData(data)
+      
+      // KLineChart's applyNewData destroys our custom DOM elements in the panes.
+      // We must rebuild them immediately to restore indicator buttons (Close, Up, Down, Maximize).
+      setTimeout(() => {
+        try {
+          paneControlManager.rebuildAll()
+        } catch (e) {}
+      }, 50)
 
       // 2. Phục hồi lại đúng mốc thời gian đó cho mã mới ở vị trí vật lý y hệt
       if (targetTimestamp && data && data.length > 0 && typeof this._chart.setOffsetRightDistance === 'function') {

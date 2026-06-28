@@ -9,7 +9,7 @@ import { indicatorManager } from '../chart/indicators.js'
 export class PaneControlManager {
   constructor() {
     this._chart = null
-    this._attachedPanes = new Set()
+    this._attachedPanes = new Map() // Use Map to store {name, config}
     this.maximizedPaneName = null // Track which sub-pane is currently maximized
   }
 
@@ -18,14 +18,24 @@ export class PaneControlManager {
     setTimeout(() => this.attach('candle_pane', 'Main'), 100)
   }
 
-  attach(paneId, name) {
+  attach(paneId, name, config = {}) {
     if (!this._chart) return
-    if (this._attachedPanes.has(paneId)) return
+    
+    // Store it so we can rebuild later
+    this._attachedPanes.set(paneId, { name, config })
 
     try {
       const paneDom = this._chart.getDom(paneId, 'main')
       if (!paneDom) return
 
+      // If controls already exist and are in the DOM, do nothing
+      if (paneDom.querySelector('.pane-controls')) {
+        return
+      }
+
+      // If it's a first time attaching to this paneDom, setup class and listeners
+      const isFirstTime = !paneDom.classList.contains('custom-pane-container')
+      
       paneDom.style.position = 'relative'
       paneDom.classList.add('custom-pane-container')
 
@@ -197,19 +207,20 @@ export class PaneControlManager {
       }
 
       paneDom.appendChild(controls)
-      this._attachedPanes.add(paneId)
 
-      paneDom.addEventListener('dblclick', (e) => {
-        if (e.target.closest('.pane-controls')) return
-        handleSubMaxClick(e)
-      })
+      if (isFirstTime) {
+        paneDom.addEventListener('dblclick', (e) => {
+          if (e.target.closest('.pane-controls')) return
+          handleSubMaxClick(e)
+        })
 
-      // Mobile support: Tap on pane activates the controls
-      paneDom.addEventListener('pointerdown', (e) => {
-        if (e.target.closest('.pane-controls')) return
-        document.querySelectorAll('.custom-pane-container.active-pane').forEach(el => el.classList.remove('active-pane'))
-        paneDom.classList.add('active-pane')
-      })
+        // Mobile support: Tap on pane activates the controls
+        paneDom.addEventListener('pointerdown', (e) => {
+          if (e.target.closest('.pane-controls')) return
+          document.querySelectorAll('.custom-pane-container.active-pane').forEach(el => el.classList.remove('active-pane'))
+          paneDom.classList.add('active-pane')
+        })
+      }
 
       // Setup global hover listener once to bypass KLineChart event overlays
       if (!this._globalHoverAttached) {
@@ -244,6 +255,12 @@ export class PaneControlManager {
 
   remove(paneId) {
     this._attachedPanes.delete(paneId)
+  }
+
+  rebuildAll() {
+    for (const [paneId, data] of this._attachedPanes.entries()) {
+      this.attach(paneId, data.name, data.config)
+    }
   }
 
   _createBtn(svgHtml, title) {
