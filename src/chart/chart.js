@@ -280,8 +280,8 @@ class KLineChartWrapper {
 
       this._chart.applyNewData(data)
       
-      // Ensure the chart scrolls to the latest data on the right
-      this._chart.setOffsetRightDistance(0)
+      // Ensure the chart scrolls to the latest data but leaves a small margin (e.g. 50px) on the right
+      this._chart.setOffsetRightDistance(50)
 
       emit(EVENTS.CHART_READY, true)
 

@@ -211,6 +211,14 @@ export class PaneControlManager {
         paneDom.classList.add('active-pane')
       })
 
+      // Desktop support: Add hover explicitly via JS to bypass overlay issues
+      paneDom.addEventListener('pointerenter', () => {
+        paneDom.classList.add('active-pane')
+      })
+      paneDom.addEventListener('pointerleave', () => {
+        paneDom.classList.remove('active-pane')
+      })
+
     } catch (e) {
       console.error('[PaneControlManager] attach error:', e)
     }
