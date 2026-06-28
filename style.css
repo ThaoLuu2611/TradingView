@@ -370,8 +370,9 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:14px;background:#
   z-index: 50;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-/* Show on hover of pane container */
-.custom-pane-container:hover > .pane-controls {
+/* Show on hover of pane container or when it is tapped (active-pane) on mobile */
+.custom-pane-container:hover > .pane-controls,
+.custom-pane-container.active-pane > .pane-controls {
   opacity: 1;
   pointer-events: auto;
 }

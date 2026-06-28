@@ -42,8 +42,9 @@ export class PaneControlManager {
         const btnMax = this._createBtn(svgMax, 'Maximize Pane')
         
         let isMaximized = false
-        btnMax.onclick = (e) => {
+        const handleMaxClick = (e) => {
           e.stopPropagation()
+          e.preventDefault()
           isMaximized = !isMaximized
           
           const indicators = get('indicators') || {}
@@ -76,11 +77,12 @@ export class PaneControlManager {
             btnMax.title = 'Maximize Pane'
           }
         }
+        btnMax.addEventListener('pointerdown', handleMaxClick)
         controls.appendChild(btnMax)
         
         paneDom.addEventListener('dblclick', (e) => {
           if (e.target.closest('.pane-controls')) return
-          btnMax.click()
+          handleMaxClick(e)
         })
       } else {
         // Sub-chart buttons: Maximize, Up, Down, Remove
@@ -92,8 +94,9 @@ export class PaneControlManager {
           isCurrentlyMaximized ? 'Restore Pane' : 'Maximize Pane'
         )
         
-        btnMax.onclick = (e) => {
+        const handleSubMaxClick = (e) => {
           e.stopPropagation()
+          e.preventDefault()
           
           const indicators = get('indicators') || {}
           const container = document.getElementById('chart-container')
@@ -149,6 +152,7 @@ export class PaneControlManager {
           // and re-create a new one. When attach() runs on the new pane, it will check
           // this.maximizedPaneName and render the correct SVG!
         }
+        btnMax.addEventListener('pointerdown', handleSubMaxClick)
         controls.appendChild(btnMax)
         
         // Move Up
@@ -156,10 +160,12 @@ export class PaneControlManager {
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>',
           'Move Up'
         )
-        btnUp.onclick = (e) => {
+        const handleUpClick = (e) => {
           e.stopPropagation()
+          e.preventDefault()
           indicatorManager.move(name, 'up')
         }
+        btnUp.addEventListener('pointerdown', handleUpClick)
         controls.appendChild(btnUp)
         
         // Move Down
@@ -167,10 +173,12 @@ export class PaneControlManager {
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>',
           'Move Down'
         )
-        btnDown.onclick = (e) => {
+        const handleDownClick = (e) => {
           e.stopPropagation()
+          e.preventDefault()
           indicatorManager.move(name, 'down')
         }
+        btnDown.addEventListener('pointerdown', handleDownClick)
         controls.appendChild(btnDown)
 
         // Close
@@ -178,11 +186,13 @@ export class PaneControlManager {
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', 
           'Remove'
         )
-        btnClose.onclick = (e) => {
+        const handleCloseClick = (e) => {
           e.stopPropagation()
+          e.preventDefault()
           emit(EVENTS.INDICATOR_TOGGLE, { name, enabled: false })
           this.remove(paneId)
         }
+        btnClose.addEventListener('pointerdown', handleCloseClick)
         controls.appendChild(btnClose)
       }
 
@@ -191,7 +201,14 @@ export class PaneControlManager {
 
       paneDom.addEventListener('dblclick', (e) => {
         if (e.target.closest('.pane-controls')) return
-        btnMax.click()
+        handleSubMaxClick(e)
+      })
+
+      // Mobile support: Tap on pane activates the controls
+      paneDom.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.pane-controls')) return
+        document.querySelectorAll('.custom-pane-container.active-pane').forEach(el => el.classList.remove('active-pane'))
+        paneDom.classList.add('active-pane')
       })
 
     } catch (e) {

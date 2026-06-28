@@ -173,8 +173,3 @@
   }
 }
 
-  /* Make pane-controls always visible on mobile */
-  .pane-controls {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-  }
