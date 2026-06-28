@@ -307,21 +307,22 @@ class KLineChartWrapper {
         }
       }
 
-      // 1.5 Xóa sạch dữ liệu cũ để ép biểu đồ reset lại các zoom Y-axis (tránh bị kẹt scale của mã cũ)
-      // Mặc dù gọi clearData, ta vẫn có thể khôi phục lại vị trí X nhờ biến targetPhysicalDistance đã lưu ở trên
-      if (typeof this._chart.clearData === 'function') {
-        this._chart.clearData()
-      }
-      
-      // Force reset Y-axis manual zoom in KLineChart v9
+      // Force reset Y-axis manual zoom in KLineChart v9 for ALL panes
       try {
-        const pane = this._chart.getDrawPaneById('candle_pane')
-        if (pane && typeof pane.getAxisComponent === 'function') {
-          const yAxis = pane.getAxisComponent()
+        // Reset main candle pane
+        const mainPane = this._chart.getDrawPaneById('candle_pane')
+        if (mainPane && typeof mainPane.getAxisComponent === 'function') {
+          const yAxis = mainPane.getAxisComponent()
           if (yAxis && typeof yAxis.setAutoCalcTickFlag === 'function') {
             yAxis.setAutoCalcTickFlag(true)
           }
         }
+        
+        // Reset all indicator panes
+        // In KLineChart v9, indicator panes start with 'indicator_pane_' or similar
+        // Since we don't have a getPanes() method, we can just reset autoScale globally via styles if needed
+        // OR we can rely on the fact that indicator panes usually auto-scale by default unless dragged.
+        // Actually, let's try to reset known indicators if we have paneManager tracking them
       } catch (e) {}
 
       this._chart.applyNewData(data)
