@@ -184,25 +184,16 @@ export function startStockPriceFeed() {
 
       if (stocksToFetch.length === 0) return;
 
-      const entries = await Promise.allSettled(
-        stocksToFetch.map(async (ticker) => {
+      for (const ticker of stocksToFetch) {
+        try {
           const { price, change } = await fetchStockPrice(ticker)
-          return [ticker, { price, change }]
-        })
-      )
-
-      const prices = {}
-      for (const entry of entries) {
-        if (entry.status === 'fulfilled') {
-          const [ticker, data] = entry.value
-          prices[ticker] = data
-        } else {
-          console.warn('[StockFeed]', entry.reason?.message)
+          // Emit update immediately for this single stock
+          emit(EVENTS.PRICES_UPDATE, { [ticker]: { price, change } })
+        } catch (err) {
+          console.warn('[StockFeed]', ticker, err.message)
         }
-      }
-
-      if (Object.keys(prices).length > 0) {
-        emit(EVENTS.PRICES_UPDATE, prices)
+        // Delay 300ms between requests to avoid proxy rate limits
+        await new Promise(r => setTimeout(r, 300))
       }
     } catch (err) {
       console.error('[startStockPriceFeed]', err)
