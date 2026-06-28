@@ -211,13 +211,31 @@ export class PaneControlManager {
         paneDom.classList.add('active-pane')
       })
 
-      // Desktop support: Add hover explicitly via JS to bypass overlay issues
-      paneDom.addEventListener('pointerenter', () => {
-        paneDom.classList.add('active-pane')
-      })
-      paneDom.addEventListener('pointerleave', () => {
-        paneDom.classList.remove('active-pane')
-      })
+      // Setup global hover listener once to bypass KLineChart event overlays
+      if (!this._globalHoverAttached) {
+        this._globalHoverAttached = true
+        document.addEventListener('pointermove', (e) => {
+          if (e.pointerType === 'touch') return // Let mobile tap handle it
+          
+          let hovered = null
+          document.querySelectorAll('.custom-pane-container').forEach(el => {
+            const rect = el.getBoundingClientRect()
+            if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                e.clientY >= rect.top && e.clientY <= rect.bottom) {
+              hovered = el
+            }
+          })
+          
+          document.querySelectorAll('.custom-pane-container.active-pane').forEach(el => {
+            if (el !== hovered && el.classList.contains('active-pane')) {
+              el.classList.remove('active-pane')
+            }
+          })
+          if (hovered && !hovered.classList.contains('active-pane')) {
+            hovered.classList.add('active-pane')
+          }
+        }, { passive: true })
+      }
 
     } catch (e) {
       console.error('[PaneControlManager] attach error:', e)
