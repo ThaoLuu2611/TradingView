@@ -234,7 +234,7 @@ export class PaneControlManager {
           if (hovered && !hovered.classList.contains('active-pane')) {
             hovered.classList.add('active-pane')
           }
-        }, { passive: true })
+        }, { capture: true, passive: true })
       }
 
     } catch (e) {
