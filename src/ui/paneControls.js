@@ -224,11 +224,13 @@ export class PaneControlManager {
         })
 
         // Mobile support: Tap on pane activates the controls
-        paneDom.addEventListener('pointerdown', (e) => {
+        const handleMobileTap = (e) => {
           if (e.target.closest('.pane-controls')) return
           document.querySelectorAll('.custom-pane-container.active-pane').forEach(el => el.classList.remove('active-pane'))
           paneDom.classList.add('active-pane')
-        })
+        }
+        paneDom.addEventListener('pointerdown', handleMobileTap, { capture: true })
+        paneDom.addEventListener('touchstart', handleMobileTap, { capture: true, passive: true })
       }
 
       // Setup global hover listener once to bypass KLineChart event overlays
