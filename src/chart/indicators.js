@@ -47,6 +47,15 @@ class IndicatorManager {
 
     // Subscribe to toggle events
     on(EVENTS.INDICATOR_TOGGLE, ({ name, enabled, calcParams, lines }) => {
+      // Update store indicators state first
+      const indicators = { ...get('indicators') }
+      if (indicators[name]) {
+        indicators[name] = { ...indicators[name], enabled }
+        if (calcParams) indicators[name].calcParams = calcParams
+        if (lines) indicators[name].lines = lines
+      }
+      set('indicators', indicators)
+
       if (enabled) {
         this.add(name, { calcParams, lines })
       } else {
@@ -257,6 +266,16 @@ class IndicatorManager {
         this.add(n, { period: indicators[n].period })
       }
     }
+
+    // 3. Update store object order and save
+    const newIndicators = {}
+    for (const n of activeNames) {
+      if (indicators[n]) newIndicators[n] = indicators[n]
+    }
+    for (const [k, v] of Object.entries(indicators)) {
+      if (!newIndicators[k]) newIndicators[k] = v
+    }
+    set('indicators', newIndicators)
   }
 }
 

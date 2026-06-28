@@ -75,6 +75,8 @@ class KLineChartWrapper {
         const rect = el.getBoundingClientRect()
         // If touch is within 70px of the right edge
         if (e.clientX - rect.left > rect.width - 70) {
+          if (e.target.closest('.pane-controls')) return
+          
           activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY, lastY: e.clientY })
           e.stopPropagation()
           e.preventDefault()
