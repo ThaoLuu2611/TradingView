@@ -371,7 +371,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;font-size:14px;background:#
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 /* Show on hover of pane container */
-div[style*="position: relative"]:hover > .pane-controls {
+.custom-pane-container:hover > .pane-controls {
   opacity: 1;
   pointer-events: auto;
 }

@@ -27,6 +27,7 @@ export class PaneControlManager {
       if (!paneDom) return
 
       paneDom.style.position = 'relative'
+      paneDom.classList.add('custom-pane-container')
 
       const controls = document.createElement('div')
       controls.className = 'pane-controls'
