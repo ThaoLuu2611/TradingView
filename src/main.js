@@ -18,7 +18,7 @@ import { AddSymbolModal }  from './ui/addSymbolModal.js'
 import { initMobileUI }    from './ui/mobile.js'
 
 import { startCryptoPriceFeed } from './api/binance-feed.js'
-import { startStockPriceFeed }  from './api/yahoo.js'
+import { startStockPriceFeed }  from './api/bitget-feed.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Chart trước — container phải sẵn sàng
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. Data feeds sau cùng
   startCryptoPriceFeed()   // Binance spot, mỗi 30s
-  startStockPriceFeed()    // Yahoo Finance, mỗi 60s
+  startStockPriceFeed()    // Bitget Futures, mỗi 10s
 
   // 4. Panel Resizer
   const resizer = document.getElementById('rp-resizer')

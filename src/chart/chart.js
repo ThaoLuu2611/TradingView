@@ -6,7 +6,7 @@
 import { on, emit, get } from '../store/store.js'
 import { EVENTS } from '../store/events.js'
 import { fetchOHLCV } from '../api/binance.js'
-import { fetchStockOHLCV } from '../api/yahoo.js'
+import { fetchStockOHLCV } from '../api/bitget-feed.js'
 
 /** Known stock tickers that do NOT contain a dot but are equities, not crypto. */
 const STOCK_SYMBOLS = new Set([
