@@ -28,16 +28,16 @@ export class PaneControlManager {
       const paneDom = this._chart.getDom(paneId, 'main')
       if (!paneDom) return
 
-      // If controls already exist and are in the DOM, do nothing
+      // KLineChart's applyNewData may wipe out custom class/style attributes on layout update.
+      // We must ALWAYS restore them!
+      const isFirstTime = !paneDom.classList.contains('custom-pane-container')
+      paneDom.style.position = 'relative'
+      paneDom.classList.add('custom-pane-container')
+
+      // If controls already exist and are in the DOM, do nothing further (avoid duplicates)
       if (paneDom.querySelector('.pane-controls')) {
         return
       }
-
-      // If it's a first time attaching to this paneDom, setup class and listeners
-      const isFirstTime = !paneDom.classList.contains('custom-pane-container')
-      
-      paneDom.style.position = 'relative'
-      paneDom.classList.add('custom-pane-container')
 
       const controls = document.createElement('div')
       controls.className = 'pane-controls'

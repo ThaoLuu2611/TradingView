@@ -326,34 +326,32 @@ class KLineChartWrapper {
         // Actually, let's try to reset known indicators if we have paneManager tracking them
       } catch (e) {}
 
-      this._chart.applyNewData(data)
-      
-      // KLineChart's applyNewData destroys our custom DOM elements in the panes.
-      // We must rebuild them immediately to restore indicator buttons (Close, Up, Down, Maximize).
-      setTimeout(() => {
+      // KLineChart's applyNewData destroys our custom DOM elements in the panes when it recalculates asynchronously.
+      // We pass a callback as the 3rd argument to safely rebuild them exactly after KLineChart finishes its DOM updates.
+      this._chart.applyNewData(data, false, () => {
         try {
           paneControlManager.rebuildAll()
         } catch (e) {}
-      }, 50)
-
-      // 2. Phục hồi lại đúng mốc thời gian đó cho mã mới ở vị trí vật lý y hệt
-      if (targetTimestamp && data && data.length > 0 && typeof this._chart.setOffsetRightDistance === 'function') {
-        let newIndex = data.length - 1
-        for (let i = data.length - 1; i >= 0; i--) {
-          if (data[i].timestamp <= targetTimestamp) {
-            newIndex = i
-            break
+        
+        // 2. Phục hồi lại đúng mốc thời gian đó cho mã mới ở vị trí vật lý y hệt
+        if (targetTimestamp && data && data.length > 0 && typeof this._chart.setOffsetRightDistance === 'function') {
+          let newIndex = data.length - 1
+          for (let i = data.length - 1; i >= 0; i--) {
+            if (data[i].timestamp <= targetTimestamp) {
+              newIndex = i
+              break
+            }
           }
+          
+          // Tính toán khoảng cách (pixel) từ nến đó đến lề phải của mảng dữ liệu mới
+          const newDistanceToLastData = ((data.length - 1) - newIndex) * currentBarSpace
+          
+          // Tính toán offset cần thiết để nến ở newIndex nằm đúng vị trí vật lý cũ
+          let newOffsetRight = targetPhysicalDistance - newDistanceToLastData
+          
+          this._chart.setOffsetRightDistance(newOffsetRight)
         }
-        
-        // Tính toán khoảng cách (pixel) từ nến đó đến lề phải của mảng dữ liệu mới
-        const newDistanceToLastData = ((data.length - 1) - newIndex) * currentBarSpace
-        
-        // Tính toán offset cần thiết để nến ở newIndex nằm đúng vị trí vật lý cũ
-        let newOffsetRight = targetPhysicalDistance - newDistanceToLastData
-        
-        this._chart.setOffsetRightDistance(newOffsetRight)
-      }
+      })
 
       emit(EVENTS.CHART_READY, true)
 
